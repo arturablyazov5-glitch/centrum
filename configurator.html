@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#090909">
+    <title>CENTRUM V1 — конфигуратор</title>
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="configurator.css">
+  </head>
+  <body>
+    <div class="configurator-shell">
+      <header class="topbar">
+        <a class="brand" href="index.html" aria-label="Вернуться к CENTRUM">CENTRUM</a>
+        <div class="topbar-center"><span>Конфигуратор</span><b data-progress></b></div>
+        <div class="top-actions">
+          <button type="button" data-copy-link>Скопировать ссылку</button>
+          <button type="button" data-reset-view>Сбросить ракурс</button>
+          <button type="button" data-reset-all>Сбросить всё</button>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <nav class="category-nav" id="category-nav" aria-label="Категории конфигуратора"></nav>
+        <section class="scene" aria-label="Интерактивная 3D-модель CENTRUM V1">
+          <canvas id="centrum-canvas" tabindex="0" aria-label="3D-модель CENTRUM. Перетащите для поворота, используйте колесо для масштаба."></canvas>
+          <div class="scene-loader" id="scene-loader"><strong>CENTRUM</strong><span>Loading 3D...</span></div>
+          <div class="hotspots" id="hotspots"></div>
+          <div class="scene-help">Перетащите, чтобы повернуть · колесо — масштаб</div>
+        </section>
+        <aside class="options-panel" id="options-panel" aria-live="polite"></aside>
+      </main>
+
+      <footer class="price-bar" id="price-bar">
+        <div class="price-model"><strong data-model-name></strong><span data-config-caption></span></div>
+        <div class="price-stat"><span>База</span><strong data-base-price></strong></div>
+        <div class="price-stat"><span>Опции</span><strong data-options-price></strong></div>
+        <div class="price-total"><span>Итого</span><strong data-total-price></strong><small><span data-deposit-label></span> · <b data-deposit-price></b></small></div>
+        <button class="primary-cta" type="button" data-open-preorder>Оформить предзаказ</button>
+      </footer>
+    </div>
+
+    <div class="preorder-modal" id="preorder-modal" hidden role="dialog" aria-modal="true" aria-labelledby="preorder-title">
+      <button class="modal-backdrop" type="button" data-close-modal aria-label="Закрыть"></button>
+      <div class="modal-card">
+        <button class="modal-close" type="button" data-close-modal aria-label="Закрыть">×</button>
+        <div class="modal-intro"><span>Предзаказ</span><h2 id="preorder-title">Ваш CENTRUM готов к следующему шагу</h2><p>Оставьте контакты. Конфигурация, спецификация и ссылка прикрепятся автоматически.</p></div>
+        <div class="modal-price"><div><span data-modal-model></span><strong data-modal-total></strong></div><div><span data-modal-deposit-label></span><strong data-modal-deposit></strong></div></div>
+        <form>
+          <label>Имя<input name="name" autocomplete="name" required></label>
+          <label>Телефон<input name="phone" type="tel" autocomplete="tel" required></label>
+          <label>Telegram <small>необязательно</small><input name="telegram" autocomplete="off"></label>
+          <label>Комментарий <small>необязательно</small><textarea name="comment" rows="3"></textarea></label>
+          <button class="primary-cta" type="submit">Отправить заявку</button>
+          <p class="form-status" data-form-status aria-live="polite"></p>
+        </form>
+      </div>
+    </div>
+    <div class="toast" id="toast" hidden></div>
+    <script type="module" src="js/configurator.js?v=20260911-1"></script>
+  </body>
+</html>

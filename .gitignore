@@ -1,0 +1,29 @@
+# В репозитории — только рабочий сайт (лендинг + конфигуратор).
+# Чертежи, архив рендеров, бэкапы и служебные файлы сюда не попадают.
+
+# Чертежи и их страница
+centrum.html
+centrum.css
+centrum-3d.css
+centrum.js
+assets/svg/
+
+# Проектные заметки, не часть сайта
+SOURCE-OF-TRUTH.md*
+acoustics-notes.md*
+
+# Рендер-архив, инструменты сборки, презентации
+output/
+tools/
+.codex-build/
+.codex-finalizer/
+
+# Бэкапы и мусор параллельной работы
+.backup-*/
+*.bak
+*.bak-*
+*.bak2-*
+*.bak3-*
+__pycache__/
+
+.DS_Store
