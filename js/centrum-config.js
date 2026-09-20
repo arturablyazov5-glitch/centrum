@@ -55,7 +55,6 @@ export const CENTRUM_CONFIG = Object.freeze({
     { name: 'Компьютер клиента', detail: 'Устанавливается скрыто и не входит в комплект' },
   ],
   preorder: { endpoint: '', method: 'POST' },
-  contact: { telegram: 'mansurov_rafael' },
 });
 
 export const DEFAULT_CONFIGURATION = Object.freeze({
