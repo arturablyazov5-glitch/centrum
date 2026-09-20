@@ -1,5 +1,6 @@
 import { CENTRUM_CONFIG } from './centrum-config.js';
 import { formatPrice, formatPriceDelta } from './pricing.js';
+import { buildConfigurationURL } from './url-state.js';
 
 const escapeHTML = (value) => String(value).replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]);
 
@@ -37,7 +38,7 @@ export function renderPanel(root, categoryId, configuration, price, onChange) {
   } else if (categoryId === 'monitor') {
     content = `${switchRow('monitorArm', CENTRUM_CONFIG.monitor.arm, configuration.monitorArm)}<p class="panel-note">Монитор приобретается отдельно. Его изображение в сцене, если показано, носит демонстрационный характер.</p>`;
   } else {
-    content = `<div class="summary-list">${summaryRows(configuration, price)}</div><button type="button" class="secondary-wide" data-copy>Скопировать ссылку</button>`;
+    content = `<div class="summary-list">${summaryRows(configuration, price)}</div><div class="summary-actions"><a class="primary-cta telegram-cta" href="${buildTelegramLink(configuration, price)}" target="_blank" rel="noopener noreferrer">Написать в Telegram</a><button type="button" class="secondary-wide" data-copy>Скопировать ссылку</button></div>`;
   }
 
   root.innerHTML = `<div class="panel-heading"><span>${category.number}</span><h1>${category.name}</h1><p>${category.description}</p></div><div class="panel-content">${content}</div>`;
@@ -72,6 +73,19 @@ export function getHumanSummary(configuration, price) {
   const holder = document.createElement('div');
   holder.innerHTML = summaryRows(configuration, price);
   return [...holder.children].map((row) => `${row.firstElementChild.textContent}: ${row.lastElementChild.textContent}`).join('\n');
+}
+
+// Формат deep link Telegram https://t.me/<user>?text=<...> открывает чат с
+// подставленным черновиком сообщения — так заявка попадает с готовой спецификацией.
+function buildTelegramLink(configuration, price) {
+  const text = [
+    'Здравствуйте! Хочу оформить предзаказ CENTRUM V1.',
+    '',
+    getHumanSummary(configuration, price),
+    '',
+    buildConfigurationURL(configuration),
+  ].join('\n');
+  return `https://t.me/${CENTRUM_CONFIG.contact.telegram}?text=${encodeURIComponent(text)}`;
 }
 
 export function updatePriceBar(root, configuration, price) {

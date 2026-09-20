@@ -17,7 +17,7 @@ export function readConfigurationFromURL(search = window.location.search) {
   };
 }
 
-export function updateURL(configuration) {
+function buildParams(configuration) {
   const params = new URLSearchParams();
   params.set('wood', configuration.wood);
   params.set('drawers', configuration.drawers);
@@ -26,9 +26,20 @@ export function updateURL(configuration) {
   if (configuration.drawerLighting) params.set('drawerLight', '1');
   if (configuration.audio51) params.set('audio', '1');
   if (configuration.monitorArm) params.set('arm', '1');
-  history.replaceState(null, '', `${location.pathname}?${params}`);
+  return params;
 }
 
-export async function copyConfigurationURL() {
-  await navigator.clipboard.writeText(location.href);
+// Строится напрямую из configuration, а не читается из location.href: рендер панели
+// (и значит ссылка на превью Telegram) выполняется до updateURL в том же тике,
+// иначе Telegram-кнопка отставала бы на один шаг конфигурации.
+export function buildConfigurationURL(configuration) {
+  return `${location.origin}${location.pathname}?${buildParams(configuration)}`;
+}
+
+export function updateURL(configuration) {
+  history.replaceState(null, '', `${location.pathname}?${buildParams(configuration)}`);
+}
+
+export async function copyConfigurationURL(configuration) {
+  await navigator.clipboard.writeText(buildConfigurationURL(configuration));
 }

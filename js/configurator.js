@@ -26,7 +26,7 @@ function notify(message) {
 }
 
 async function copyLink() {
-  try { await copyConfigurationURL(); notify('Ссылка на конфигурацию скопирована'); }
+  try { await copyConfigurationURL(configuration); notify('Ссылка на конфигурацию скопирована'); }
   catch { notify('Не удалось скопировать ссылку'); }
 }
 

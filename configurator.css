@@ -140,6 +140,11 @@ button:focus, input:focus, textarea:focus { outline: none; }
 .secondary-wide { width: 100%; margin-top: 14px; height: 44px; border: 1px solid var(--line); border-radius: 999px; background: transparent; cursor: pointer; }
 .secondary-wide:hover { border-color: rgba(255,255,255,.3); }
 
+.summary-actions { display: flex; flex-direction: column; margin-top: 22px; }
+.telegram-cta.primary-cta { width: 100%; min-width: 0; display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
+.telegram-cta.primary-cta::before { content: ''; width: 16px; height: 16px; flex: none; background: currentColor; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21.05 3.64 2.98 10.68c-1.24.5-1.23 1.2-.23 1.5l4.63 1.45 1.8 5.52c.22.6.38.85.78.85.4 0 .58-.18.8-.4l1.93-1.87 4.02 2.97c.74.41 1.27.2 1.46-.68l2.64-12.5c.28-1.18-.38-1.66-1.16-1.36ZM8.5 14.2l9.4-5.9c.44-.27.85-.12.52.18L10.2 15.3l-.27 3.13-1.43-4.24Z'/%3E%3C/svg%3E") center/contain no-repeat; }
+.summary-actions .secondary-wide { margin-top: 10px; }
+
 .price-bar { display: grid; grid-template-columns: minmax(180px, 1.35fr) repeat(2, minmax(105px,.65fr)) minmax(190px,1fr) auto; align-items: center; gap: clamp(18px, 2.5vw, 40px); padding: 0 30px; border-top: 1px solid var(--line); background: rgba(9,9,9,.97); position: relative; z-index: 8; }
 .price-model, .price-stat, .price-total { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .price-model strong { font-size: 14px; }
