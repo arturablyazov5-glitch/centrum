@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /configurator.html
+Allow: /
+
+Sitemap: https://centrum360.ru/sitemap.xml
