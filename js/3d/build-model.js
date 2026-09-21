@@ -4,7 +4,7 @@
 import { CENTER, LEVEL_1 } from './params.js';
 import { createMesh, createLines, addPolyline, toBufferData } from './mesh.js';
 import { clearOfEntry } from './entry-cut.js';
-import { buildCore, coreEdges } from './build-core.js?v=20260909-02';
+import { buildCore, coreEdges } from './build-core.js?v=20260921-03';
 import { buildBridge, bridgeEdges } from './build-bridge.js';
 import { buildBridgeFrame, buildBridgeFittings, buildStrutTube, buildStrutRod } from './bridge-fittings.js';
 import { buildFridgeCavity, buildFridgeDoor, fridgeDoorEdges } from './build-fridge.js';

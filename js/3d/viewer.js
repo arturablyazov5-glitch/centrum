@@ -1,8 +1,8 @@
 // Вьювер: связывает модель, камеру, управление и подвижные узлы в один объект
 // с понятным интерфейсом. Кадр считается только тогда, когда что-то изменилось.
 
-import { buildModel } from './build-model.js?v=20260909-02';
-import { createRenderer } from './renderer.js?v=20260909-02';
+import { buildModel } from './build-model.js?v=20260921-01';
+import { createRenderer } from './renderer.js?v=20260921-03';
 import { createCamera, viewMatrix, projectionMatrix, clampCamera, fitDistance, eyePosition, fadeDistance, VIEWS } from './camera.js';
 import { createFocus } from './focus.js';
 import { attachControls } from './controls.js';
@@ -46,7 +46,7 @@ export function createViewer(canvas, { productOnly = false } = {}) {
   // столешниц Core/Bridge, включая нижнюю плоскость вокруг LED-паза.
   // Грузим её отдельно, чтобы тяжёлая 3D-карточка появилась сразу даже при медленном диске.
   const wood = new Image();
-  wood.src = 'assets/textures/tabletop-walnut-v1.png';
+  wood.src = 'assets/textures/tabletop-walnut.png';
   wood.decode().then(() => {
     renderer.setTexture(byName.core, wood, { surfaceOnly: true });
     renderer.setTexture(byName.bridge, wood, { surfaceOnly: true });
@@ -60,7 +60,7 @@ export function createViewer(canvas, { productOnly = false } = {}) {
   // Отдельная карта наружной стенки: мелкая тёмная фактура повторяется по длине
   // фасада и по высоте, не затрагивая деревянную столешницу.
   const sidePanel = new Image();
-  sidePanel.src = 'assets/textures/side-panel-charcoal-v1.png';
+  sidePanel.src = 'assets/textures/side-panel-charcoal.png';
   sidePanel.decode().then(() => {
     for (const group of Object.values(byName)) {
       if (group.name === 'core' || group.name === 'cavities' || group.name.startsWith('drawer-') || group.name.startsWith('config-drawers-')) {

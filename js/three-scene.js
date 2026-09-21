@@ -1,4 +1,4 @@
-import { createViewer } from './3d/viewer.js?v=20260911-configurator';
+import { createViewer } from './3d/viewer.js?v=20260921-03';
 
 const CAMERA_VIEWS = {
   finish: { azimuth: 3.98, elevation: 0.48, distance: 5900, target: [1450, 1450, 430] },

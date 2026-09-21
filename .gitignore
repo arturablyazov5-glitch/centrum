@@ -15,6 +15,10 @@ acoustics-notes.md*
 # Рендер-архив, инструменты сборки, презентации
 output/
 tools/
+!tools/
+tools/*
+!tools/build-site.py
+!tools/build-geometry.py
 .codex-build/
 .codex-finalizer/
 

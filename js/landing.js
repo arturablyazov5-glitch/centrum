@@ -40,6 +40,73 @@ if (frame) {
   frameObserver.observe(frame.closest('.configurator-frame'));
 }
 
+document.querySelectorAll('[data-light-demo]').forEach((demo) => {
+  const toggle = demo.querySelector('[data-light-toggle]');
+  const images = demo.querySelectorAll('[data-light-image]');
+  if (!toggle || images.length !== 2) return;
+
+  const updateLightState = () => {
+    const isOn = toggle.checked;
+    demo.dataset.state = isOn ? 'on' : 'off';
+  };
+
+  toggle.addEventListener('change', updateLightState);
+  updateLightState();
+});
+
+const zoomIcon = `
+  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+    <circle cx="10.8" cy="10.8" r="5.8"></circle>
+    <path d="m15.2 15.2 4.3 4.3"></path>
+  </svg>
+`;
+const lightbox = document.createElement('div');
+lightbox.className = 'lightbox';
+lightbox.setAttribute('aria-hidden', 'true');
+lightbox.innerHTML = '<button class="lightbox-close" type="button" aria-label="Закрыть">×</button><img alt="" />';
+document.body.append(lightbox);
+const lightboxImage = lightbox.querySelector('img');
+const closeLightbox = () => {
+  lightbox.classList.remove('is-open');
+  lightbox.setAttribute('aria-hidden', 'true');
+  lightboxImage.removeAttribute('src');
+};
+lightbox.querySelector('.lightbox-close').addEventListener('click', closeLightbox);
+lightbox.addEventListener('click', (event) => {
+  if (event.target === lightbox) closeLightbox();
+});
+addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && lightbox.classList.contains('is-open')) closeLightbox();
+});
+
+const photoTargets = document.querySelectorAll(
+  'main figure img, main .card-media img, main .light-demo-media',
+);
+photoTargets.forEach((target) => {
+  const isImage = target instanceof HTMLImageElement;
+  const wrapper = isImage ? target.parentElement : target;
+  if (!wrapper || wrapper.querySelector('.photo-zoom-button')) return;
+  wrapper.classList.add('photo-zoom-target');
+  const button = document.createElement('button');
+  button.className = 'photo-zoom-button';
+  button.type = 'button';
+  button.setAttribute('aria-label', 'Открыть фото крупнее');
+  button.innerHTML = zoomIcon;
+  wrapper.append(button);
+  button.addEventListener('click', () => {
+    const image = isImage
+      ? target
+      : wrapper.querySelector('[data-light-state="on"]')?.closest('[data-light-demo]')?.dataset.state === 'on'
+        ? wrapper.querySelector('[data-light-state="on"]')
+        : wrapper.querySelector('[data-light-state="off"]');
+    if (!image?.src) return;
+    lightboxImage.src = image.currentSrc || image.src;
+    lightboxImage.alt = image.alt || '';
+    lightbox.classList.add('is-open');
+    lightbox.setAttribute('aria-hidden', 'false');
+  });
+});
+
 // Липкая кнопка появляется после первого экрана и прячется на самом конфигураторе,
 // чтобы не перекрывать его собственную панель с ценой.
 const sticky = document.getElementById('sticky-cta');

@@ -185,32 +185,31 @@ void main(){
   float bridgeTop = 1.0 - step(0.025, distance(vColor, vec3(0.824, 0.808, 0.776)));
   float worktopBottom = 1.0 - step(0.025, distance(vColor, vec3(0.694, 0.663, 0.604)));
   float surfaceMask = uSurfaceTexture * max(max(worktop, worktopBottom), max(upper, bridgeTop));
-  // Весь серый корпус — наружная и внутренняя стенки, низ пояса и underside —
+  // Серый корпус — наружная стенка, нижняя внутренняя стенка и underside —
   // один материал. Для него отдельная проекция идёт по длине/высоте плоскости,
   // поэтому фактура не растягивается по мировому X/Y.
   float bodySide = 1.0 - step(0.025, distance(vColor, vec3(0.788, 0.773, 0.741)));
-  float bodyBelt = 1.0 - step(0.025, distance(vColor, vec3(0.345, 0.341, 0.333)));
+  // Порог здесь намеренно узкий: innerWall почти того же серого цвета, но дерево
+  // получает только верхняя стенка между первым и вторым уровнями.
+  float bodyBelt = 1.0 - step(0.002, distance(vColor, vec3(0.345, 0.341, 0.333)));
   float bodyUnderside = 1.0 - step(0.025, distance(vColor, vec3(0.667, 0.651, 0.624)));
   float bodyDrawer = 1.0 - step(0.025, distance(vColor, vec3(0.780, 0.761, 0.729)));
-  // Пояс из этой группы выведен: по референсам это шпон, а не тёмная панель.
   float sideMask = uSideTexture * max(bodySide, max(bodyUnderside, bodyDrawer));
-  float beltMask = uSurfaceTexture * bodyBelt;
   vec2 sideUV = abs(n.z) > max(abs(n.x), abs(n.y))
     ? vec2(vWorld.x / 220.0, vWorld.y / 220.0)
     : (abs(n.x) > abs(n.y)
       ? vec2(vWorld.y / 220.0, vWorld.z / 720.0)
       : vec2(vWorld.x / 220.0, vWorld.z / 720.0));
   vec3 sideSampled = texture2D(uSideMap, fract(sideUV)).rgb;
-  // Пояс облицован тем же шпоном, что и столешница, но uv корпуса плоские
-  // (x/size, y/size): на вертикальной гнутой стенке они растягивают волокно в
-  // «вагонку». Поэтому проекция здесь коробчатая, как у тёмных панелей, только
-  // с шагом шпона. То же решение сделано в tools/relight-blender-scene.py.
   vec2 beltUV = abs(n.z) > max(abs(n.x), abs(n.y))
     ? vWorld.xy / 1180.0
     : (abs(n.x) > abs(n.y) ? vWorld.yz / 1180.0 : vWorld.xz / 1180.0);
   vec3 beltSampled = texture2D(uTexture, fract(beltUV)).rgb;
   vec3 materialSampled = mix(sampled, sideSampled, sideMask);
+  float beltMask = uSurfaceTexture * bodyBelt;
   materialSampled = mix(materialSampled, beltSampled, beltMask);
+  // Верхняя стенка — шпон; нижняя внутренняя стенка имеет отдельный цветовой тег
+  // innerWall и остаётся матово-серой.
   float woodMask = max(surfaceMask, beltMask);
   float textureMix = max(uTextured * (1.0 - uSurfaceTexture), max(woodMask, sideMask));
   vec3 albedo = mix(vColor, vColor * materialSampled, textureMix);

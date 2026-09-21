@@ -7,7 +7,8 @@
 // фурнитура — в build-bridge-hardware.js.
 
 import {
-  SIZE, R_HOLE, LEVEL_1, UNDER_1, ENTRY_X0, LEAF_X0, LEAF_X1, BRIDGE_Y0, arcY,
+  SIZE, CENTER, R_HOLE, LEVEL_1, UNDER_1, EDGE_R, EDGE_SEG,
+  ENTRY_X0, LEAF_X0, LEAF_X1, BRIDGE_Y0, arcY,
 } from './params.js';
 import { addQuad, addPolygon } from './mesh.js';
 import { clipPolygon } from './entry-cut.js';
@@ -62,6 +63,8 @@ function frontEdge() {
   return pts;
 }
 
+const roundedFrontY = (x, radius = R_HOLE) => CENTER + Math.sqrt(Math.max(0, radius * radius - (x - CENTER) ** 2));
+
 // Стенки и дно выборки: контур в плане, поднятый между двумя отметками.
 function pocket(mesh, { x: [x0, x1], y: [y0, y1] }, zFloor, zOpen, color, { openAtX0 = false } = {}) {
   const walls = [
@@ -79,22 +82,53 @@ function pocket(mesh, { x: [x0, x1], y: [y0, y1] }, zFloor, zOpen, color, { open
 
 export function buildBridge(mesh) {
   const edge = frontEdge();
+  const outerFlatY = SIZE - EDGE_R;
 
   for (let j = 0; j < edge.length - 1; j++) {
     const a = edge[j], b = edge[j + 1];
+    const aFlat = [a[0], roundedFrontY(a[0], R_HOLE + EDGE_R)];
+    const bFlat = [b[0], roundedFrontY(b[0], R_HOLE + EDGE_R)];
     // Верх секции: рабочая плоскость 820 без единого выреза.
-    addQuad(mesh, [a[0], a[1], LEVEL_1], [b[0], b[1], LEVEL_1], [b[0], SIZE, LEVEL_1], [a[0], SIZE, LEVEL_1], PALETTE.bridge);
+    addQuad(mesh, [aFlat[0], aFlat[1], LEVEL_1], [bFlat[0], bFlat[1], LEVEL_1],
+      [b[0], outerFlatY, LEVEL_1], [a[0], outerFlatY, LEVEL_1], PALETTE.bridge);
     // Низ секции: та же плита за вычетом каналов под газлифты и двух ручек.
     const bottom = [[a[0], a[1], UNDER_1], [b[0], b[1], UNDER_1], [b[0], SIZE, UNDER_1], [a[0], SIZE, UNDER_1]];
     for (const part of inPlan(bottom, [...CHANNELS, ...HANDLES, REBATE])) addPolygon(mesh, part, PALETTE.worktopBottom);
     // Торец по дуге отверстия: в полосе четверти он начинается с отметки 693.
-    const arcFace = [[a[0], a[1], UNDER_1], [b[0], b[1], UNDER_1], [b[0], b[1], LEVEL_1], [a[0], a[1], LEVEL_1]];
+    const arcFace = [[a[0], a[1], UNDER_1], [b[0], b[1], UNDER_1],
+      [b[0], b[1], LEVEL_1 - EDGE_R], [a[0], a[1], LEVEL_1 - EDGE_R]];
     for (const part of cutOut(arcFace, 0, REBATE.x, 2, [UNDER_1, REBATE_Z])) addPolygon(mesh, part, PALETTE.bridge);
+
+    // Вал R8 по дуге отверстия — продолжение скругления стационарной части.
+    for (let k = 0; k < EDGE_SEG; k++) {
+      const bevelPoint = (p, flat, t) => {
+        const phi = (Math.PI / 2) * t;
+        const s = 1 - Math.cos(phi);
+        return [p[0], p[1] + (flat[1] - p[1]) * s,
+          LEVEL_1 - EDGE_R + EDGE_R * Math.sin(phi)];
+      };
+      addQuad(mesh, bevelPoint(a, aFlat, k / EDGE_SEG), bevelPoint(b, bFlat, k / EDGE_SEG),
+        bevelPoint(b, bFlat, (k + 1) / EDGE_SEG), bevelPoint(a, aFlat, (k + 1) / EDGE_SEG), PALETTE.bridge);
+    }
+
+    // Наружный вал секции замыкает скругление внешнего контура Core.
+    for (let k = 0; k < EDGE_SEG; k++) {
+      const p = (x, t) => {
+        const phi = (Math.PI / 2) * t;
+        return [x, SIZE - EDGE_R * (1 - Math.cos(phi)),
+          LEVEL_1 - EDGE_R + EDGE_R * Math.sin(phi)];
+      };
+      addQuad(mesh, p(a[0], k / EDGE_SEG), p(b[0], k / EDGE_SEG),
+        p(b[0], (k + 1) / EDGE_SEG), p(a[0], (k + 1) / EDGE_SEG), PALETTE.bridge);
+    }
   }
 
   // Боковые торцы у петли и у опорного выступа плюс наружный торец секции.
   // У петли в торце открыты каналы газлифтов, поэтому грань собирается с окнами.
-  const hinge = [[LEAF_X0, edge[0][1], UNDER_1], [LEAF_X0, SIZE, UNDER_1], [LEAF_X0, SIZE, LEVEL_1], [LEAF_X0, edge[0][1], LEVEL_1]];
+  const hinge = [[LEAF_X0, edge[0][1], UNDER_1], [LEAF_X0, SIZE, UNDER_1],
+    [LEAF_X0, SIZE, LEVEL_1 - EDGE_R], [LEAF_X0, outerFlatY, LEVEL_1],
+    [LEAF_X0, roundedFrontY(LEAF_X0, R_HOLE + EDGE_R), LEVEL_1],
+    [LEAF_X0, edge[0][1], LEVEL_1 - EDGE_R]];
   let hingeParts = [hinge];
   for (const y of STRUT_Y)
     hingeParts = hingeParts.flatMap((part) => cutOut(part, 1, [y - CHANNEL_W / 2, y + CHANNEL_W / 2], 2, [UNDER_1, CHANNEL_TOP]));
@@ -102,9 +136,13 @@ export function buildBridge(mesh) {
 
   // Свободный торец: четверть срезает его нижние 3 мм по всей длине.
   const yEnd = edge[edge.length - 1][1];
-  addQuad(mesh, [LEAF_X1, yEnd, REBATE_Z], [LEAF_X1, SIZE, REBATE_Z], [LEAF_X1, SIZE, LEVEL_1], [LEAF_X1, yEnd, LEVEL_1], PALETTE.bridge);
+  addPolygon(mesh, [[LEAF_X1, yEnd, REBATE_Z], [LEAF_X1, SIZE, REBATE_Z],
+    [LEAF_X1, SIZE, LEVEL_1 - EDGE_R], [LEAF_X1, outerFlatY, LEVEL_1],
+    [LEAF_X1, roundedFrontY(LEAF_X1, R_HOLE + EDGE_R), LEVEL_1],
+    [LEAF_X1, yEnd, LEVEL_1 - EDGE_R]], PALETTE.bridge);
   // Наружный торец у входа — с вырезом четверти в углу.
-  const outer = [[LEAF_X0, SIZE, UNDER_1], [LEAF_X1, SIZE, UNDER_1], [LEAF_X1, SIZE, LEVEL_1], [LEAF_X0, SIZE, LEVEL_1]];
+  const outer = [[LEAF_X0, SIZE, UNDER_1], [LEAF_X1, SIZE, UNDER_1],
+    [LEAF_X1, SIZE, LEVEL_1 - EDGE_R], [LEAF_X0, SIZE, LEVEL_1 - EDGE_R]];
   for (const part of cutOut(outer, 0, REBATE.x, 2, [UNDER_1, REBATE_Z])) addPolygon(mesh, part, PALETTE.bridge);
 
   // Сама четверть: потолок на отметке 693 и её внутренняя стенка.
@@ -129,8 +167,8 @@ export function buildBridge(mesh) {
 // Контур секции для линий: верхняя кромка по дуге, бокам и наружному торцу.
 export function bridgeEdges() {
   const edge = frontEdge();
-  const top = edge.map(([x, y]) => [x, y, LEVEL_1]);
-  const outline = [...top, [LEAF_X1, SIZE, LEVEL_1], [LEAF_X0, SIZE, LEVEL_1]];
+  const top = edge.map(([x]) => [x, roundedFrontY(x, R_HOLE + EDGE_R), LEVEL_1]);
+  const outline = [...top, [LEAF_X1, SIZE - EDGE_R, LEVEL_1], [LEAF_X0, SIZE - EDGE_R, LEVEL_1]];
   const bottom = outline.map(([x, y]) => [x, y, UNDER_1]);
   const handles = HANDLES.map(({ x: [x0, x1], y: [y0, y1] }) =>
     [[x0, y0, UNDER_1], [x1, y0, UNDER_1], [x1, y1, UNDER_1], [x0, y1, UNDER_1]]);

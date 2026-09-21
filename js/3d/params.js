@@ -71,20 +71,29 @@ export const underAt = (y) => topAt(y) - TOP_THICK;
 export const isHighZone = (y) => rise(y) > 1;
 
 // Радиус наружного контура под заданным углом: скруглённый квадрат 2900 с R200.
-export function boundaryRadius(a) {
+export function boundaryRadius(a, inset = 0) {
   const dx = Math.cos(a), dy = Math.sin(a);
   const half = CENTER - CORNER_R; // 1250
+  const radius = Math.max(0, CORNER_R - inset);
   let lo = 0, hi = 2200;
   for (let i = 0; i < 30; i++) {
     const r = (lo + hi) / 2;
     const d = Math.hypot(Math.max(Math.abs(r * dx) - half, 0), Math.max(Math.abs(r * dy) - half, 0));
-    if (d <= CORNER_R) lo = r; else hi = r;
+    if (d <= radius) lo = r; else hi = r;
   }
   return lo;
 }
 
 // Точка наружного контура под заданным углом.
 export const boundaryPoint = (a) => [CENTER + boundaryRadius(a) * Math.cos(a), CENTER + boundaryRadius(a) * Math.sin(a)];
+
+// Параллельный внутренний контур скруглённого квадрата. Нужен для настоящего
+// вала по наружной кромке: габарит остаётся 2900, а верхняя плоскость отступает
+// внутрь ровно на радиус скругления.
+export const boundaryInsetPoint = (a, inset) => [
+  CENTER + boundaryRadius(a, inset) * Math.cos(a),
+  CENTER + boundaryRadius(a, inset) * Math.sin(a),
+];
 
 // Точка окружности радиуса r под заданным углом.
 export const ringPoint = (a, r) => [CENTER + r * Math.cos(a), CENTER + r * Math.sin(a)];

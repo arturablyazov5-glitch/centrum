@@ -1,7 +1,7 @@
 export const CENTRUM_CONFIG = Object.freeze({
   model: {
-    id: 'centrum-v1',
-    name: 'CENTRUM V1',
+    id: 'centrum',
+    name: 'CENTRUM',
     basePrice: 589000,
     depositPercent: 50,
   },

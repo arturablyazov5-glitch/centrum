@@ -42,7 +42,8 @@ button:focus, input:focus, textarea:focus { outline: none; }
   z-index: 5;
 }
 
-.brand { color: var(--text); text-decoration: none; font-size: 16px; font-weight: 760; letter-spacing: -.02em; width: fit-content; }
+.brand { display: block; width: 112px; color: var(--text); text-decoration: none; }
+.brand img { display: block; width: 100%; height: auto; }
 .topbar-center { display: flex; align-items: center; gap: 12px; color: #b9b9bd; font-size: 12px; letter-spacing: .08em; }
 .topbar-center b { color: var(--dim); font-weight: 550; letter-spacing: 0; }
 .top-actions { display: flex; justify-content: flex-end; gap: 18px; }
@@ -103,7 +104,7 @@ button:focus, input:focus, textarea:focus { outline: none; }
 .option-card { min-width: 0; padding: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: #141415; text-align: left; cursor: pointer; transition: background .2s ease, border-color .2s ease; }
 .option-card:hover { background: #18181a; border-color: rgba(255,255,255,.22); }
 .option-card.is-selected { border-color: var(--line-strong); }
-.material-preview { display: block; height: 73px; background-color: var(--swatch); background-image: linear-gradient(94deg, rgba(255,255,255,.08), transparent 20%, rgba(0,0,0,.13) 21%, transparent 43%, rgba(255,255,255,.045) 66%, rgba(0,0,0,.12)), url('assets/textures/tabletop-walnut-v1.png'); background-size: auto, 190px auto; background-blend-mode: soft-light, luminosity; filter: saturate(.78); }
+.material-preview { display: block; height: 73px; background-color: var(--swatch); background-image: linear-gradient(94deg, rgba(255,255,255,.08), transparent 20%, rgba(0,0,0,.13) 21%, transparent 43%, rgba(255,255,255,.045) 66%, rgba(0,0,0,.12)), url('assets/textures/tabletop-walnut.png'); background-size: auto, 190px auto; background-blend-mode: soft-light, luminosity; filter: saturate(.78); }
 .option-copy { display: flex; flex-direction: column; gap: 5px; padding: 13px 14px 14px; }
 .option-copy strong { font-size: 13px; font-weight: 620; }
 .option-copy span { min-height: 26px; color: #747479; font-size: 10px; line-height: 1.35; }
@@ -153,7 +154,7 @@ button:focus, input:focus, textarea:focus { outline: none; }
 .price-total > strong { font-size: 22px; line-height: 1; letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
 .price-total small { color: #67676c; font-size: 9px; }
 .price-total small b { color: #aaaab0; font-weight: 580; }
-.primary-cta { min-width: 202px; height: 52px; padding: 0 25px; border: 0; border-radius: 999px; background: #f4f4f4; color: #0a0a0a; font-size: 13px; font-weight: 680; cursor: pointer; transition: background .18s ease, transform .18s ease; }
+.primary-cta { justify-self: end; width: max-content; max-width: 100%; min-width: 202px; height: 52px; padding: 0 25px; border: 0; border-radius: 999px; background: #f4f4f4; color: #0a0a0a; font-size: 13px; font-weight: 680; cursor: pointer; transition: background .18s ease, transform .18s ease; }
 .primary-cta:hover { background: #fff; transform: translateY(-1px); }
 .primary-cta:disabled { opacity: .55; cursor: wait; }
 
@@ -182,7 +183,7 @@ button:focus, input:focus, textarea:focus { outline: none; }
   .nav-step { grid-template-columns: 24px 1fr; }
   .nav-step strong { font-size: 11px; }
   .price-bar { padding: 0 20px; gap: 16px; }
-  .price-stat:first-of-type { display: none; }
+  .price-stat:nth-of-type(2) { display: none; }
   .price-bar { grid-template-columns: minmax(150px, 1fr) 110px 190px auto; }
 }
 
