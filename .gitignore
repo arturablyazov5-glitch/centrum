@@ -13,7 +13,20 @@ SOURCE-OF-TRUTH.md*
 acoustics-notes.md*
 
 # Рендер-архив, инструменты сборки, презентации
-output/
+output/*
+!output/render/
+output/render/*
+!output/render/premium/
+output/render/premium/*
+!output/render/premium/hero-graphite-metal-smooth-corners.png
+!output/render/premium/camera-premium-01-three-quarter-1600.png
+!output/render/premium/camera-premium-02-workspace-1600.png
+!output/render/premium/camera-premium-03-material-detail-1600.png
+!output/render/premium/drawers-detail-1600.png
+!output/render/premium/led-wall-angle-off.png
+!output/render/premium/led-wall-angle-on.png
+!output/render/premium/bridge-front-closed-1600.png
+!output/render/premium/bridge-front-open-1600.png
 tools/
 !tools/
 tools/*
