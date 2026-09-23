@@ -54,6 +54,21 @@ document.querySelectorAll('[data-light-demo]').forEach((demo) => {
   updateLightState();
 });
 
+// Эргономика: точка на рендере и пункт под ним подсвечиваются вместе.
+document.querySelectorAll('[data-ergo]').forEach((ergo) => {
+  const items = ergo.querySelectorAll('[data-spot]');
+  const setActive = (id) => {
+    ergo.classList.toggle('has-active', Boolean(id));
+    items.forEach((item) => item.classList.toggle('is-active', item.dataset.spot === id));
+  };
+  items.forEach((item) => {
+    item.addEventListener('mouseenter', () => setActive(item.dataset.spot));
+    item.addEventListener('mouseleave', () => setActive(null));
+    item.addEventListener('focus', () => setActive(item.dataset.spot));
+    item.addEventListener('blur', () => setActive(null));
+  });
+});
+
 const zoomIcon = `
   <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
     <circle cx="10.8" cy="10.8" r="5.8"></circle>
@@ -80,7 +95,7 @@ addEventListener('keydown', (event) => {
 });
 
 const photoTargets = document.querySelectorAll(
-  'main figure img, main .card-media img, main .light-demo-media',
+  'main figure:not(.no-photo-zoom) img, main .card-media img, main .light-demo-media',
 );
 photoTargets.forEach((target) => {
   const isImage = target instanceof HTMLImageElement;

@@ -9,7 +9,7 @@
 
 import { addPrism, addQuad } from './mesh.js';
 import { PALETTE } from './palette.js';
-import { CELLS, BOX_BACK, BOX_FRONT } from './drawer-geometry.js';
+import { CELLS, BOX_BACK, BOX_FRONT, NICHE_INSET } from './drawer-geometry.js';
 
 const LIFT = 40;     // отметка низа направляющей над низом ячейки
 const H = 40;        // высота наружного звена
@@ -23,8 +23,9 @@ const MEMBERS = {
   inner: { offset: 17, flange: 9, inset: 7, color: PALETTE.railMoving },
 };
 
-// Стороны ячейки: базовая отметка по Y и направление вглубь проёма.
-const sidesOf = (cell) => [{ base: cell.y0, dir: 1 }, { base: cell.y1, dir: -1 }];
+// Стороны ниши: фасад накладной, поэтому стенка ниши (перегородка) стоит
+// на NICHE_INSET внутрь от края фасада. Направление — вглубь проёма.
+const sidesOf = (cell) => [{ base: cell.y0 + NICHE_INSET, dir: 1 }, { base: cell.y1 - NICHE_INSET, dir: -1 }];
 
 const span = (a, b) => (a < b ? [a, b] : [b, a]);
 

@@ -33,7 +33,7 @@ async function copyLink() {
 function navigate(category, { focus = true } = {}) {
   activeCategory = category;
   renderNavigation(nav, activeCategory, navigate);
-  renderPanel(panel, activeCategory, configuration, calculatePrice(configuration), applyChange);
+  renderPanel(panel, activeCategory, configuration, calculatePrice(configuration), applyChange, applyLive);
   panel.querySelector('[data-copy]')?.addEventListener('click', copyLink);
   document.querySelector('[data-progress]').textContent = `${CENTRUM_CONFIG.categories.find((item) => item.id === activeCategory).number} / ${String(CENTRUM_CONFIG.categories.length).padStart(2, '0')}`;
   if (focus) scene?.focus(activeCategory);
@@ -44,13 +44,25 @@ function applyChange(patch) {
   updateConfigurator();
 }
 
+const hexToRgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+const ledColorOf = (config) => config.ledTemperature === 'rgb'
+  ? hexToRgb(config.ledRgb)
+  : CENTRUM_CONFIG.lighting[config.ledTemperature].color;
+
+// Правка без перерисовки панели — для палитры RGB, которая меняет цвет на лету.
+function applyLive(patch) {
+  updateConfiguration(patch);
+  scene?.setLedColor(ledColorOf(configuration));
+  updatePriceBar(priceBar, configuration, calculatePrice(configuration));
+  updateURL(configuration);
+}
+
 export function updateConfigurator() {
   const price = calculatePrice(configuration);
   const wood = CENTRUM_CONFIG.wood[configuration.wood];
-  const light = CENTRUM_CONFIG.lighting[configuration.ledTemperature];
-  scene?.update({ ...configuration, woodTint: wood.tint, ledColor: light.color });
+  scene?.update({ ...configuration, woodTint: wood.tint, ledColor: ledColorOf(configuration) });
   renderNavigation(nav, activeCategory, navigate);
-  renderPanel(panel, activeCategory, configuration, price, applyChange);
+  renderPanel(panel, activeCategory, configuration, price, applyChange, applyLive);
   panel.querySelector('[data-copy]')?.addEventListener('click', copyLink);
   updatePriceBar(priceBar, configuration, price);
   updateModalSummary(modal, price);
@@ -74,6 +86,11 @@ function positionHotspots() {
   requestAnimationFrame(positionHotspots);
 }
 requestAnimationFrame(positionHotspots);
+
+// Свет в сцене включён по умолчанию; тумблер только показывает его или гасит.
+const ledPower = document.querySelector('[data-led-power]');
+scene?.setLed(ledPower.checked);
+ledPower.addEventListener('change', () => scene?.setLed(ledPower.checked));
 
 document.querySelector('[data-copy-link]').addEventListener('click', copyLink);
 document.querySelector('[data-reset-view]').addEventListener('click', () => scene?.reset());
@@ -117,13 +134,17 @@ modal.querySelector('form').addEventListener('submit', async (event) => {
 });
 
 const loader = document.querySelector('#scene-loader');
+// Без текстур корпус рисуется светлыми цветами-метками материалов, поэтому
+// заглушку снимаем только когда пришли обе карты — столешницы и стенки.
+// Ошибка загрузки тоже считается ответом: ждать дальше нечего.
 const readyCheck = setInterval(() => {
-  if (canvas.dataset.worktopTexture === 'ready') {
+  const { worktopTexture, sideTexture } = canvas.dataset;
+  if (worktopTexture && sideTexture) {
     loader.classList.add('is-ready');
     clearInterval(readyCheck);
   }
 }, 120);
-setTimeout(() => loader.classList.add('is-ready'), 3500);
+setTimeout(() => loader.classList.add('is-ready'), 15000);
 
 navigate(activeCategory, { focus: false });
 updateConfigurator();

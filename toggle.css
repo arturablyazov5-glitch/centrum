@@ -1,0 +1,66 @@
+/* Тумблер CENTRUM — один компонент для лендинга и конфигуратора.
+
+   Разметка (в JS её собирает toggleControl из js/toggle.js):
+     <label class="…">
+       <input type="checkbox" class="toggle-input">
+       <span class="toggle" aria-hidden="true"></span>
+     </label>
+
+   .toggle-pill — готовая плашка «подпись + тумблер» для размещения поверх
+   картинки или 3D-сцены; положение задаёт страница. */
+
+.toggle-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.toggle {
+  position: relative;
+  flex: 0 0 auto;
+  width: 42px;
+  height: 24px;
+  border-radius: 999px;
+  background: #56565d;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.toggle::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.22);
+  transition: transform 0.2s ease;
+}
+.toggle-input:checked + .toggle { background: #2bc85d; }
+.toggle-input:checked + .toggle::after { transform: translateX(18px); }
+.toggle-input:focus-visible + .toggle {
+  outline: 2px solid #e8a961;
+  outline-offset: 3px;
+}
+
+.toggle-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 8px 8px 16px;
+  border-radius: 999px;
+  background: rgba(10, 10, 12, 0.66);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  color: #dedbd4;
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toggle,
+  .toggle::after { transition: none; }
+}

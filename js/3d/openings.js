@@ -4,11 +4,14 @@
 import { SIZE, UNDER_1, PLINTH, FRIDGE_Y, DRAWERS_Y } from './params.js';
 import { clipPolygon } from './entry-cut.js';
 import { addPolygon } from './mesh.js';
+import { OPENING_TOP as DRAWERS_TOP } from './drawer-geometry.js';
 
-// Все проёмы лежат в плоскости наружного фасада x = 2900 и заданы в координатах y и z.
+// Все проёмы лежат в плоскости наружного фасада x = 2700 и заданы в координатах y и z.
 export const FACADE_OPENINGS = [
   { y: FRIDGE_Y, z: [PLINTH, UNDER_1] },
-  { y: DRAWERS_Y, z: [PLINTH, UNDER_1] },
+  // Над ящиками стенка опускается на 18 мм ниже столешницы: полоса над верхним
+  // рядом — та же стенка, а не отдельная полка.
+  { y: DRAWERS_Y, z: [PLINTH, DRAWERS_TOP] },
 ];
 
 const ON_FACADE = SIZE - 0.5;

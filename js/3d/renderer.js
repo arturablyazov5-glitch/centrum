@@ -4,7 +4,7 @@
 import { normalMatrix3, identity, lookAt, multiply, orthographic } from './mat4.js';
 import { computeBounds } from './bounds.js';
 import { CENTER, LEVEL_1, R_HOLE, R_BELT_HIGH } from './params.js';
-import { LED_Z } from './build-led.js';
+import { LED_Z, LED_END_Y } from './build-led.js';
 
 // GLSL требует у float-констант явную точку: 820 — синтаксическая ошибка, 820.0 — нет.
 const f = (n) => n.toFixed(1);
@@ -71,8 +71,8 @@ vec4 nearestLed(vec3 p){
   float len = max(length(d), 1.0);
   vec2 ring = LED_CENTER + d / len * LED_RADIUS;
   // Лента идёт только там, где выступ реально нависает: у входа линия разомкнута.
-  // Геометрия и свет заканчиваются на одной точной границе y=1700.
-  float live = step(ring.y, 1700.0);
+  // Геометрия и свет заканчиваются на одной точной границе y=1600.
+  float live = step(ring.y, ${f(LED_END_Y)});
   return vec4(ring, LED_Z, live);
 }
 
@@ -194,7 +194,12 @@ void main(){
   float bodyBelt = 1.0 - step(0.002, distance(vColor, vec3(0.345, 0.341, 0.333)));
   float bodyUnderside = 1.0 - step(0.025, distance(vColor, vec3(0.667, 0.651, 0.624)));
   float bodyDrawer = 1.0 - step(0.025, distance(vColor, vec3(0.780, 0.761, 0.729)));
-  float sideMask = uSideTexture * max(bodySide, max(bodyUnderside, bodyDrawer));
+  // Цоколь — та же панель корпуса, только темнее: фактура та же, тон свой.
+  float bodyPlinth = 1.0 - step(0.025, distance(vColor, vec3(0.490, 0.478, 0.459)));
+  // Нижняя внутренняя стенка — та же панель корпуса в своём тоне. От шпона
+  // верхней стенки её цвет отличается на 0,006, поэтому порог ещё уже.
+  float bodyInner = 1.0 - step(0.003, distance(vColor, vec3(0.341, 0.341, 0.337)));
+  float sideMask = uSideTexture * max(max(max(bodySide, bodyPlinth), bodyInner), max(bodyUnderside, bodyDrawer));
   vec2 sideUV = abs(n.z) > max(abs(n.x), abs(n.y))
     ? vec2(vWorld.x / 220.0, vWorld.y / 220.0)
     : (abs(n.x) > abs(n.y)
@@ -209,7 +214,7 @@ void main(){
   float beltMask = uSurfaceTexture * bodyBelt;
   materialSampled = mix(materialSampled, beltSampled, beltMask);
   // Верхняя стенка — шпон; нижняя внутренняя стенка имеет отдельный цветовой тег
-  // innerWall и остаётся матово-серой.
+  // innerWall и получает фактуру панели корпуса (sideMask), а не шпон.
   float woodMask = max(surfaceMask, beltMask);
   float textureMix = max(uTextured * (1.0 - uSurfaceTexture), max(woodMask, sideMask));
   vec3 albedo = mix(vColor, vColor * materialSampled, textureMix);
@@ -252,7 +257,7 @@ void main(){
   float radius = length(vWorld.xy - LED_CENTER);
   float below = step(vWorld.z, LED_Z - 4.0);
   float down = max(-fromLed.z / dist, 0.0);
-  float inside = 1.0 - smoothstep(1250.0, 1420.0, radius);
+  float inside = 1.0 - smoothstep(${f(R_BELT_HIGH)}, ${f(R_BELT_HIGH + 170)}, radius);
   // Стенки свет не пропускают: ниже рабочей поверхности он есть только в шахте
   // центрального отверстия. Внутрь холодильника, ящиков и ниши для ног он не попадает.
   float reachable = max(step(SECTOR_Z - 1.0, vWorld.z), 1.0 - step(HOLE_R, radius));
@@ -263,10 +268,12 @@ void main(){
   float cone = uLed * led.w * below * inside * down * reachable;
   // LED не огибает и не проходит сквозь переход: сам склон и всё за ним
   // исключены из локальной засветки вместе с отсутствующим участком ленты.
-  cone *= (1.0 - smoothstep(1520.0, 1700.0, vWorld.y)) * (1.0 - step(1251.0, radius));
+  cone *= (1.0 - smoothstep(${f(LED_END_Y - 180)}, ${f(LED_END_Y)}, vWorld.y)) * (1.0 - step(${f(R_BELT_HIGH + 1)}, radius));
   // Ограниченная декоративная подсветка только внутренней стенки корпуса.
   // Без карты видимости LED нельзя корректно освещать предметы и склон.
-  cone *= sideMask * (1.0 - step(0.1, abs(n.z))) * step(1190.0, radius);
+  // Прямо под лентой стенка облицована шпоном пояса (beltMask), а не панелью
+  // корпуса: без него засветка гасла ровно там, где лента и светит.
+  cone *= max(sideMask, beltMask) * (1.0 - step(0.1, abs(n.z))) * step(${f(R_BELT_HIGH - 60)}, radius);
   vec3 ledDir = -fromLed / dist;
   float ledNoL = max(dot(n, ledDir), 0.0);
   vec3 ledRadiance = uLedColor * cone * 7.5 * falloff;
@@ -414,7 +421,7 @@ export function createRenderer(canvas) {
   const program = createProgram(gl);
   const shadowProgram = createShadowProgram(gl);
   const shadowTarget = createShadowTarget(gl, 2048);
-  const shadowTargetPoint = [1450, 1450, 500];
+  const shadowTargetPoint = [CENTER, CENTER, 500];
   const shadowView = lookAt([-2710, -3190, 5540], shadowTargetPoint, [0, 0, 1]);
   const shadowProjection = orthographic(-4300, 4300, -4300, 4300, 100, 15e3);
   const shadowMatrix = multiply(shadowProjection, shadowView);

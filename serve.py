@@ -10,7 +10,7 @@
 """
 
 import sys
-from http.server import HTTPServer, SimpleHTTPRequestHandler
+from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8000
 
@@ -30,7 +30,9 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
 if __name__ == '__main__':
     print(f'CENTRUM → http://localhost:{PORT}/centrum.html   (кэш выключен, Ctrl+C — остановить)')
+    # Потоковый сервер: иначе текстуры и модели по несколько мегабайт идут строго
+    # по очереди и сцена секунды висит без текстур, в светлых цветах-метках.
     try:
-        HTTPServer(('127.0.0.1', PORT), NoCacheHandler).serve_forever()
+        ThreadingHTTPServer(('127.0.0.1', PORT), NoCacheHandler).serve_forever()
     except KeyboardInterrupt:
         print('\nостановлен')

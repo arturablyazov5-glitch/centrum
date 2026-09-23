@@ -1,7 +1,7 @@
 // Мини-холодильник в угловом модуле наружного фасада: ниша с поддоном и стеклянная
 // дверь на петле по дальней кромке. Дверь открывается наружу, как на виде 08.
 
-import { SIZE, PLINTH, FRIDGE_Y, FRIDGE_DEPTH, FRIDGE_HEIGHT } from './params.js';
+import { SIZE, PLINTH, CARCASS_BOTTOM, FRIDGE_Y, FRIDGE_DEPTH, FRIDGE_HEIGHT } from './params.js';
 import { addQuad, addPrism } from './mesh.js';
 import { PALETTE } from './palette.js';
 
@@ -9,8 +9,9 @@ const X = SIZE;                 // плоскость наружного фас�
 const DEPTH = FRIDGE_DEPTH;
 const DOOR_T = 34;              // толщина дверной панели; наружная грань заподлицо с фасадом
 const [Y0, Y1] = FRIDGE_Y;
-const Z0 = PLINTH;
+const Z0 = PLINTH + CARCASS_BOTTOM; // дно ниши — на дне корпуса над цоколем
 const Z1 = Z0 + FRIDGE_HEIGHT;
+const DOOR_Z0 = PLINTH;             // дверь, как и фасады ящиков, закрывает кромку дна
 
 // Ось петли — у дальнего от ящиков края двери, поэтому дверь открывается «от угла».
 export const FRIDGE_HINGE = [X - DOOR_T, Y0, 0];
@@ -24,6 +25,10 @@ export function buildFridgeCavity(mesh) {
   addQuad(mesh, [back, Y1, Z0], [X, Y1, Z0], [X, Y1, Z1], [back, Y1, Z1], PALETTE.fridge);
   addQuad(mesh, [back, Y0, Z0], [X, Y0, Z0], [X, Y1, Z0], [back, Y1, Z0], PALETTE.fridge);
   addQuad(mesh, [back, Y0, Z1], [X, Y0, Z1], [X, Y1, Z1], [back, Y1, Z1], PALETTE.fridge);
+  // Кромка дна корпуса за дверью: видна, когда дверь открыта.
+  const edge = X - DOOR_T - 1;
+  addQuad(mesh, [edge, Y0, DOOR_Z0], [edge, Y1, DOOR_Z0], [edge, Y1, Z0], [edge, Y0, Z0], PALETTE.side);
+  addQuad(mesh, [edge, Y0, Z0], [X, Y0, Z0], [X, Y1, Z0], [edge, Y1, Z0], PALETTE.fridge);
   // Две полки: без них открытая ниша читается как пустая дыра.
   for (const z of [Z0 + 190, Z0 + 380])
     addQuad(mesh, [back + 20, Y0 + 20, z], [X - 60, Y0 + 20, z], [X - 60, Y1 - 20, z], [back + 20, Y1 - 20, z], PALETTE.drawer);
@@ -33,12 +38,12 @@ export function buildFridgeCavity(mesh) {
 export function buildFridgeDoor(mesh) {
   const inner = X - DOOR_T;
   const frame = 30;
-  addPrism(mesh, [[inner, Y0], [X, Y0], [X, Y1], [inner, Y1]], Z0, Z1, PALETTE.glass, { top: true, bottom: true });
+  addPrism(mesh, [[inner, Y0], [X, Y0], [X, Y1], [inner, Y1]], DOOR_Z0, Z1, PALETTE.glass, { top: true, bottom: true });
   // Рама по периметру: узкие непрозрачные полосы поверх стекла.
   const strip = (y0, y1, z0, z1) => addQuad(mesh, [X + 1, y0, z0], [X + 1, y1, z0], [X + 1, y1, z1], [X + 1, y0, z1], PALETTE.gap);
-  strip(Y0, Y0 + frame, Z0, Z1);
-  strip(Y1 - frame, Y1, Z0, Z1);
-  strip(Y0, Y1, Z0, Z0 + frame);
+  strip(Y0, Y0 + frame, DOOR_Z0, Z1);
+  strip(Y1 - frame, Y1, DOOR_Z0, Z1);
+  strip(Y0, Y1, DOOR_Z0, DOOR_Z0 + frame);
   strip(Y0, Y1, Z1 - frame, Z1);
   // Вертикальная ручка у кромки, противоположной петле: единственное, что выступает за фасад.
   const handle = (y0, y1, x1) => addPrism(mesh, [[X, y0], [x1, y0], [x1, y1], [X, y1]], 250, 520, PALETTE.gap, { top: true, bottom: true });
@@ -49,5 +54,5 @@ export function buildFridgeDoor(mesh) {
 }
 
 export function fridgeDoorEdges() {
-  return [[[X + 3, Y0, Z0], [X + 3, Y1, Z0], [X + 3, Y1, Z1], [X + 3, Y0, Z1]]];
+  return [[[X + 3, Y0, DOOR_Z0], [X + 3, Y1, DOOR_Z0], [X + 3, Y1, Z1], [X + 3, Y0, Z1]]];
 }

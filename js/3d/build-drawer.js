@@ -11,17 +11,6 @@ const PULL_W = 0.44;       // ширина пальцевого выреза в 
 const PULL_H = 42;         // глубина U-образного выреза от верхней кромки
 const PULL_STEPS = 10;     // сегменты плавной нижней кромки выреза
 
-// Призма с осью толщины по X. Нужна именно для фасада: его контур лежит в
-// плоскости YZ, а стандартная addPrism() выдавливает контур по Z.
-function addYzPrism(mesh, contour, x0, x1, color) {
-  for (let i = 0; i < contour.length; i++) {
-    const a = contour[i], b = contour[(i + 1) % contour.length];
-    addQuad(mesh, [x0, a[0], a[1]], [x0, b[0], b[1]], [x1, b[0], b[1]], [x1, a[0], a[1]], color);
-  }
-  addPolygon(mesh, contour.map(([y, z]) => [x0, y, z]).reverse(), color);
-  addPolygon(mesh, contour.map(([y, z]) => [x1, y, z]), color);
-}
-
 function pullProfile(y0, y1, z1) {
   const mid = (y0 + y1) / 2;
   const half = Math.min(((y1 - y0) * PULL_W) / 2, 220);
@@ -35,9 +24,11 @@ function pullProfile(y0, y1, z1) {
   return points;
 }
 
-// Фасад без накладной ручки. Материал действительно отсутствует в центральной
-// части верхней кромки; профиль выреза — плавная U-образная линия, а не тёмная
-// наклейка поверх сплошной панели.
+// Фасад без накладной ручки — одна цельная плита. Материал действительно
+// отсутствует в центральной части верхней кромки; профиль выреза — плавная
+// U-образная линия. Лицевая и тыльная плоскости разбиты на копланарные куски
+// только для триангуляции, а торцы идут лишь по внешнему контуру: внутри плиты
+// нет граней, которые фаска в шейдере рисовала бы светлой линией.
 function buildFingerPullFacade(mesh, cell) {
   const { y0, y1, z0, z1 } = cell;
   const profile = pullProfile(y0, y1, z1);
@@ -45,19 +36,29 @@ function buildFingerPullFacade(mesh, cell) {
   const [pullY1] = profile[profile.length - 1];
   const zBottom = z1 - PULL_H;
   const x0 = X - FRONT_T, x1 = X;
+  const c = PALETTE.drawer;
 
-  // Нижняя часть и боковые стойки оставляют отверстие открытым сверху.
-  addYzPrism(mesh, [[y0, z0], [y1, z0], [y1, zBottom], [y0, zBottom]], x0, x1, PALETTE.drawer);
-  addYzPrism(mesh, [[y0, zBottom], [pullY0, zBottom], [pullY0, z1], [y0, z1]], x0, x1, PALETTE.drawer);
-  addYzPrism(mesh, [[pullY1, zBottom], [y1, zBottom], [y1, z1], [pullY1, z1]], x0, x1, PALETTE.drawer);
-
-  // Полоса под кривой: собрана из трапеций, поэтому её верхняя кромка повторяет
-  // радиус пальцевого выреза, а не превращается в прямоугольную щель.
+  // Куски плоскости фасада в координатах (y, z), обход против часовой при взгляде снаружи.
+  const pieces = [
+    [[y0, z0], [y1, z0], [y1, zBottom], ...profile.slice().reverse().map(([y]) => [y, zBottom]), [y0, zBottom]],
+    [[y0, zBottom], [pullY0, zBottom], [pullY0, z1], [y0, z1]],
+    [[pullY1, zBottom], [y1, zBottom], [y1, z1], [pullY1, z1]],
+  ];
   for (let i = 0; i < profile.length - 1; i++) {
     const a = profile[i], b = profile[i + 1];
-    addYzPrism(mesh, [[a[0], zBottom], [b[0], zBottom], b, a], x0, x1, PALETTE.drawer);
+    pieces.push([[a[0], zBottom], [b[0], zBottom], b, a]);
+  }
+  for (const piece of pieces) {
+    addPolygon(mesh, piece.map(([y, z]) => [x1, y, z]), c);
+    addPolygon(mesh, piece.map(([y, z]) => [x0, y, z]).reverse(), c);
   }
 
+  // Торцы по внешнему контуру плиты: низ, бока, верх до выреза, сам вырез.
+  const contour = [[y0, z0], [y1, z0], [y1, z1], ...profile.slice().reverse(), [y0, z1]];
+  for (let i = 0; i < contour.length; i++) {
+    const a = contour[i], b = contour[(i + 1) % contour.length];
+    addQuad(mesh, [x0, a[0], a[1]], [x0, b[0], b[1]], [x1, b[0], b[1]], [x1, a[0], a[1]], c);
+  }
 }
 
 // Ящик: фасад с утопленным вырезом, короб с бортами и внутреннее звено направляющей.
@@ -68,7 +69,7 @@ export function buildDrawer(mesh, cell) {
 
   // Короб уже ячейки: по бокам остаётся место под направляющие.
   const by0 = y0 + RAIL_GAP, by1 = y1 - RAIL_GAP, bz = z0 + 18;
-  const top = Math.min(bz + WALL_H, z1 - 10);
+  const top = Math.min(bz + WALL_H, z1 - 12);
   addQuad(mesh, [BOX_BACK, by0, bz], [BOX_FRONT, by0, bz], [BOX_FRONT, by1, bz], [BOX_BACK, by1, bz], PALETTE.drawer);
   addPrism(mesh, [[BOX_BACK, by0], [BOX_BACK + SIDE, by0], [BOX_BACK + SIDE, by1], [BOX_BACK, by1]], bz, top, PALETTE.drawer, { top: true });
   addPrism(mesh, [[BOX_BACK, by0], [BOX_FRONT, by0], [BOX_FRONT, by0 + SIDE], [BOX_BACK, by0 + SIDE]], bz, top, PALETTE.drawer, { top: true });

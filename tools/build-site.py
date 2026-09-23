@@ -19,12 +19,6 @@ BRIDGE_ON = RENDER_DIR / "bridge-front-open-1600.png"
 STORAGE_RENDER = RENDER_DIR / "drawers-detail-1600.png"
 CONSTRUCTION_RENDER = RENDER_DIR / "camera-premium-01-three-quarter-1600.png"
 ERGONOMICS_RENDER = RENDER_DIR / "camera-premium-02-workspace-1600.png"
-FINISH_TEXTURES = {
-    "Орех": ROOT / "assets" / "textures" / "tabletop-walnut.png",
-    "Тёмный орех": ROOT / "assets" / "textures" / "pbr" / "smoked-walnut-veneer" / "diffuse.jpg",
-    "Натуральный дуб": ROOT / "assets" / "textures" / "pbr" / "walnut-premium-generated" / "albedo.png",
-    "Чёрный дуб": ROOT / "assets" / "textures" / "pbr" / "dark-oak-board" / "albedo.png",
-}
 
 
 def png_size(path: Path) -> tuple[int, int]:
@@ -163,24 +157,6 @@ def update_index(
         + updated[ergonomics_match.end() :]
     )
 
-    for label, texture in FINISH_TEXTURES.items():
-        if not texture.exists():
-            raise SystemExit(f"Finish texture not found for {label}: {texture}")
-        texture_pattern = re.compile(
-            rf'(<div\s+class="finish">\s*<img\s+class="swatch"\s+src=")[^"]+'
-            rf'("\s+alt="[^"]*"\s*/>\s*<b>{re.escape(label)}</b>)',
-            re.DOTALL,
-        )
-        texture_match = texture_pattern.search(updated)
-        if not texture_match:
-            raise SystemExit(f"Finish card was not found for {label}")
-        texture_relative = texture.relative_to(ROOT).as_posix()
-        updated = (
-            updated[: texture_match.start()]
-            + f'{texture_match.group(1)}{texture_relative}{texture_match.group(2)}'
-            + updated[texture_match.end() :]
-        )
-
     light_changed = False
     for state, path in (("off", LIGHT_OFF), ("on", LIGHT_ON)):
         if not path.exists():
@@ -258,8 +234,6 @@ def main() -> None:
     print(f"{action}: storage={storage.relative_to(ROOT)}")
     print(f"{action}: construction={construction.relative_to(ROOT)}")
     print(f"{action}: ergonomics={ergonomics.relative_to(ROOT)}")
-    for label, texture in FINISH_TEXTURES.items():
-        print(f"{action}: {label}={texture.relative_to(ROOT)}")
     for state, path in (("off", LIGHT_OFF), ("on", LIGHT_ON)):
         status = "available" if path.exists() else "waiting"
         if light_changed and path.exists() and not args.dry_run:

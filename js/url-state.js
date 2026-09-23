@@ -14,6 +14,7 @@ export function readConfigurationFromURL(search = window.location.search) {
     drawerLighting: truthy(params.get('drawerLight')),
     audio51: truthy(params.get('audio')),
     monitorArm: truthy(params.get('arm')),
+    ledRgb: /^[0-9a-f]{6}$/i.test(params.get('rgb') || '') ? `#${params.get('rgb').toLowerCase()}` : DEFAULT_CONFIGURATION.ledRgb,
   };
 }
 
@@ -23,6 +24,7 @@ function buildParams(configuration) {
   params.set('drawers', configuration.drawers);
   params.set('power', configuration.electricity);
   params.set('light', configuration.ledTemperature);
+  if (configuration.ledTemperature === 'rgb') params.set('rgb', configuration.ledRgb.slice(1));
   if (configuration.drawerLighting) params.set('drawerLight', '1');
   if (configuration.audio51) params.set('audio', '1');
   if (configuration.monitorArm) params.set('arm', '1');

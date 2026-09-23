@@ -4,6 +4,7 @@
 import {
   SIZE, CENTER, CORNER_R, R_HOLE, R_BELT_LOW, R_BELT_HIGH, R_LIP,
   LEVEL_1, UNDER_1, TOP_THICK, EDGE_R, EDGE_SEG, ENTRY_X0, ENTRY_X1, SEGMENTS,
+  PLINTH, PLINTH_RECESS,
   topAt, underAt, ringPoint, lipPoint, lipOverhang, boundaryPoint, boundaryInsetPoint, arcY,
 } from './params.js';
 import { addPolygon, addQuad } from './mesh.js';
@@ -11,6 +12,7 @@ import { outsideEntry } from './entry-cut.js';
 import { addWallWithOpenings } from './openings.js';
 import { LEDGE_BOTTOM, LEDGE_Y1 } from './bridge-fittings.js';
 import { PALETTE } from './palette.js';
+import { SOCKET_ANGLES, SOCKET_HOLE, SOCKET_Z } from './sockets.js';
 
 // Грань корпуса с учётом выреза прохода.
 function addCut(mesh, poly, color, mergeEps = 0.001) {
@@ -40,6 +42,41 @@ const CORE_ANGLES = (() => {
   return [...unique, tau];
 })();
 
+// Отверстия под гнёзда розеток в стенке между уровнями (sockets.js). Корпус
+// строится до отражения (mirror.js: x → 2700 − x), поэтому мировой угол a
+// здесь становится π − a. Квадрат 64 × 64 закрыт рамкой 84 мм со всех сторон.
+const TAU = Math.PI * 2;
+const SOCKET_CUTS = SOCKET_ANGLES.map((a) => {
+  const middle = ((Math.PI - a) % TAU + TAU) % TAU;
+  const half = Math.atan(SOCKET_HOLE / 2 / R_BELT_HIGH);
+  return [middle - half, middle + half];
+});
+const SOCKET_HOLE_Z = [SOCKET_Z - SOCKET_HOLE / 2, SOCKET_Z + SOCKET_HOLE / 2];
+
+// Облицовка стенки между уровнями на одном участке кольца. Где участок заходит
+// в отверстие розетки, он делится по углу, и в полосе отверстия остаются только
+// куски ниже и выше него. Точки деления лежат на хорде участка, а не на дуге:
+// так новые вершины не отходят от плоскости грани и не дают щелей со столешницей.
+function addBeltWall(mesh, angles, beltHigh, under, color) {
+  const [a0, a1] = angles;
+  const breaks = [a0, a1];
+  for (const [h0, h1] of SOCKET_CUTS) for (const h of [h0, h1]) if (h > a0 && h < a1) breaks.push(h);
+  breaks.sort((x, y) => x - y);
+  const at = (a, z) => {
+    const t = (a - a0) / (a1 - a0);
+    return [beltHigh[0][0] + (beltHigh[1][0] - beltHigh[0][0]) * t, beltHigh[0][1] + (beltHigh[1][1] - beltHigh[0][1]) * t, z];
+  };
+  const top = (a) => under[0] + (under[1] - under[0]) * (a - a0) / (a1 - a0);
+  const band = (s, e, z0, z1) => addCut(mesh, [at(s, z0), at(e, z0), at(e, z1(e)), at(s, z1(s))], color);
+  for (let i = 0; i < breaks.length - 1; i++) {
+    const [s, e] = [breaks[i], breaks[i + 1]];
+    const mid = (s + e) / 2;
+    if (!SOCKET_CUTS.some(([h0, h1]) => mid > h0 && mid < h1)) { band(s, e, LEVEL_1, top); continue; }
+    band(s, e, LEVEL_1, () => SOCKET_HOLE_Z[0]);
+    band(s, e, SOCKET_HOLE_Z[1], top);
+  }
+}
+
 // То же для наружной стенки, где дополнительно вырезаны проёмы фасадных модулей.
 function addWall(mesh, poly, color) {
   for (const part of outsideEntry(poly)) addWallWithOpenings(mesh, part, color);
@@ -54,6 +91,7 @@ export function buildCore(mesh) {
     const lip = angles.map(lipPoint);
     const outer = angles.map(boundaryPoint);
     const outerFlat = angles.map((a) => boundaryInsetPoint(a, EDGE_R));
+    const plinth = angles.map((a) => boundaryInsetPoint(a, PLINTH_RECESS));
 
     const at = (p, z) => [p[0], p[1], z];
     const topLip = lip.map((p) => topAt(p[1]));
@@ -96,7 +134,7 @@ export function buildCore(mesh) {
 
     if (raised) {
       // Стенка между первым и вторым уровнями облицована вертикальным шпоном.
-      addCut(mesh, [at(beltHigh[0], LEVEL_1), at(beltHigh[1], LEVEL_1), at(beltHigh[1], under[1]), at(beltHigh[0], under[0])], PALETTE.belt);
+      addBeltWall(mesh, angles, beltHigh, under, PALETTE.belt);
       // Нижняя сторона 60-мм выступа вокруг LED-паза облицована тем же шпоном,
       // что и верх; сама лента остаётся отдельной светящейся геометрией.
       addCut(mesh, [at(lip[0], underAt(lip[0][1])), at(lip[1], underAt(lip[1][1])), at(beltHigh[1], under[1]), at(beltHigh[0], under[0])], PALETTE.worktopBottom);
@@ -154,7 +192,11 @@ export function buildCore(mesh) {
     // деревянная кромка. Так текстура не растягивается вниз на весь корпус.
     const outerTop = outer.map((p) => topAt(p[1]));
     const outerUnder = outerTop.map((z) => z - TOP_THICK);
-    addWall(mesh, [at(outer[0], 0), at(outer[1], 0), at(outer[1], outerUnder[1]), at(outer[0], outerUnder[0])], PALETTE.side);
+    addWall(mesh, [at(outer[0], PLINTH), at(outer[1], PLINTH), at(outer[1], outerUnder[1]), at(outer[0], outerUnder[0])], PALETTE.side);
+    // Цоколь утоплен на 50 по всему контуру (лист 29): тёмная матовая панель
+    // и нижняя кромка корпуса над ней. Фасад от этого «висит» над полом.
+    addCut(mesh, [at(plinth[0], 0), at(plinth[1], 0), at(plinth[1], PLINTH), at(plinth[0], PLINTH)], PALETTE.plinth);
+    addCut(mesh, [at(plinth[0], PLINTH), at(plinth[1], PLINTH), at(outer[1], PLINTH), at(outer[0], PLINTH)], PALETTE.underside);
     addWall(mesh, [at(outer[0], outerUnder[0]), at(outer[1], outerUnder[1]),
       at(outer[1], outerTop[1] - EDGE_R), at(outer[0], outerTop[0] - EDGE_R)], PALETTE.worktop);
     // Тот же R8, что у отверстия и верхнего пояса, теперь идёт по всему
@@ -170,13 +212,23 @@ export function buildCore(mesh) {
       addCut(mesh, [bevelPoint(0, j / EDGE_SEG), bevelPoint(1, j / EDGE_SEG),
         bevelPoint(1, (j + 1) / EDGE_SEG), bevelPoint(0, (j + 1) / EDGE_SEG)], PALETTE.worktop, EDGE_MERGE_EPS);
     }
-    addCut(mesh, [at(beltLow[0], 0), at(outer[0], 0), at(outer[1], 0), at(beltLow[1], 0)], PALETTE.underside);
+    addCut(mesh, [at(beltLow[0], 0), at(plinth[0], 0), at(plinth[1], 0), at(beltLow[1], 0)], PALETTE.underside);
   }
 
   // Стенка со стороны выступа показана настоящей панелью 18 мм, а не одной гранью:
   // иначе не видно, что её верх выбран и полоса лежит в выборке, а не внутри стенки.
   // Со стороны петли толщина не нужна — там в стенку заходит кронштейн петли.
   const WALL_T = 18;
+
+  // Торец стенки у прохода в плоскости x. Ниже PLINTH он кончается на выемке
+  // цоколя: выемка по наружному контуру открыта в проход, а не заглушена.
+  const PLINTH_Y = SIZE - PLINTH_RECESS;
+  const endFace = (x, y0, y1, z0, z1, color) => {
+    if (z0 < PLINTH && Math.min(y1, PLINTH_Y) > y0)
+      addQuad(mesh, [x, y0, z0], [x, Math.min(y1, PLINTH_Y), z0], [x, Math.min(y1, PLINTH_Y), Math.min(z1, PLINTH)], [x, y0, Math.min(z1, PLINTH)], color);
+    if (z1 > PLINTH)
+      addQuad(mesh, [x, y0, Math.max(z0, PLINTH)], [x, y1, Math.max(z0, PLINTH)], [x, y1, z1], [x, y0, z1], color);
+  };
 
   // Торцы прохода: стенка корпуса ниже столешницы и замкнутый кромочный профиль 100 × 60.
   for (const x of [ENTRY_X0, ENTRY_X1]) {
@@ -186,10 +238,10 @@ export function buildCore(mesh) {
     // полоса ложится в эту выборку. Последние 30 мм у входа стенка идёт на полную
     // высоту и закрывает торец полосы — с порога его не видно.
     if (x === ENTRY_X1) {
-      addQuad(mesh, [x, yBody, 0], [x, LEDGE_Y1, 0], [x, LEDGE_Y1, LEDGE_BOTTOM], [x, yBody, LEDGE_BOTTOM], PALETTE.innerWall);
-      addQuad(mesh, [x, LEDGE_Y1, 0], [x, SIZE, 0], [x, SIZE, UNDER_1], [x, LEDGE_Y1, UNDER_1], PALETTE.innerWall);
+      endFace(x, yBody, LEDGE_Y1, 0, LEDGE_BOTTOM, PALETTE.innerWall);
+      endFace(x, LEDGE_Y1, SIZE, 0, UNDER_1, PALETTE.innerWall);
     } else {
-      addQuad(mesh, [x, yBody, 0], [x, SIZE, 0], [x, SIZE, UNDER_1], [x, yBody, UNDER_1], PALETTE.innerWall);
+      endFace(x, yBody, SIZE, 0, UNDER_1, PALETTE.innerWall);
     }
     addQuad(mesh, [x, yPanel, UNDER_1], [x, SIZE, UNDER_1], [x, SIZE, LEVEL_1], [x, yPanel, LEVEL_1], PALETTE.worktop);
   }
@@ -198,8 +250,8 @@ export function buildCore(mesh) {
   // а дальше стенка выходит на полную высоту и закрывает её торец.
   const wallY = arcY(ENTRY_X1, R_BELT_LOW);
   const back = ENTRY_X1 + WALL_T;
-  addQuad(mesh, [back, wallY, 0], [back, LEDGE_Y1, 0], [back, LEDGE_Y1, LEDGE_BOTTOM], [back, wallY, LEDGE_BOTTOM], PALETTE.innerWall);
-  addQuad(mesh, [back, LEDGE_Y1, 0], [back, SIZE, 0], [back, SIZE, UNDER_1], [back, LEDGE_Y1, UNDER_1], PALETTE.innerWall);
+  endFace(back, wallY, LEDGE_Y1, 0, LEDGE_BOTTOM, PALETTE.innerWall);
+  endFace(back, LEDGE_Y1, SIZE, 0, UNDER_1, PALETTE.innerWall);
   addQuad(mesh, [ENTRY_X1, wallY, LEDGE_BOTTOM], [back, wallY, LEDGE_BOTTOM],
     [back, LEDGE_Y1, LEDGE_BOTTOM], [ENTRY_X1, LEDGE_Y1, LEDGE_BOTTOM], PALETTE.innerWall);
   // Торцевая ступенька выборки: ею стенка и упирается в конец полосы.
@@ -217,6 +269,7 @@ export function coreEdges() {
     for (const a of CORE_ANGLES) {
       let p;
       if (r === 'outer') p = boundaryPoint(a);
+      else if (r === 'plinth') p = boundaryInsetPoint(a, PLINTH_RECESS);
       else if (r === 'lipFlat') {
         const lip = lipPoint(a);
         const dx = lip[0] - CENTER, dy = lip[1] - CENTER;
@@ -236,7 +289,8 @@ export function coreEdges() {
   push(R_BELT_HIGH, LEVEL_1);
   push('lipFlat', (y) => topAt(y));
   push('outer', (y) => topAt(y) - EDGE_R);
-  push('outer', 0);
+  push('outer', PLINTH);
+  push('plinth', 0);
   return rings;
 }
 

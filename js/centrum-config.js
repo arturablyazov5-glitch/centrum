@@ -1,3 +1,5 @@
+import { SIZE } from './3d/params.js';
+
 export const CENTRUM_CONFIG = Object.freeze({
   model: {
     id: 'centrum',
@@ -5,7 +7,7 @@ export const CENTRUM_CONFIG = Object.freeze({
     basePrice: 589000,
     depositPercent: 50,
   },
-  dimensions: { width: 2900, depth: 2900 },
+  dimensions: { width: SIZE, depth: SIZE },
   categories: [
     { id: 'finish', number: '01', name: 'Отделка', description: 'Выберите характер натуральной деревянной поверхности. Корпус всегда остается матово-черным.' },
     { id: 'storage', number: '02', name: 'Хранение', description: 'Фасады равномерно занимают всю фиксированную зону хранения без пустых ячеек.' },
@@ -44,7 +46,7 @@ export const CENTRUM_CONFIG = Object.freeze({
     arm: { name: 'Кронштейн для монитора', description: 'Скрытое крепление и кабельный маршрут', price: 22000 },
   },
   baseIncluded: [
-    'Конструкция 2900 × 2900 мм', 'Bridge', 'Холодильник', 'Tech Bay', 'Мусорный модуль',
+    `Конструкция ${SIZE} × ${SIZE} мм`, 'Bridge', 'Холодильник', 'Tech Bay', 'Мусорный модуль',
     'Базовая система хранения', 'Кабель-менеджмент', 'Вентиляция', 'Dock', 'Qi', 'LED',
     'Акустическая обработка', 'Матовый черный корпус',
   ],
@@ -66,4 +68,6 @@ export const DEFAULT_CONFIGURATION = Object.freeze({
   drawerLighting: false,
   audio51: false,
   monitorArm: false,
+  // Цвет для сценария RGB: любой, задаётся палитрой на шаге «Свет».
+  ledRgb: '#899ef0',
 });

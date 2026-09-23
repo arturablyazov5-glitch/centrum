@@ -2,8 +2,9 @@
 // Он читает геометрию из GLB без Blender и без сторонних библиотек: настоящая форма,
 // сглаженные нормали, разбиение по материалам и базовые текстуры каждого из них.
 
-import { CENTER, LEVEL_1, LEVEL_2 } from './params.js';
+import { CENTER, LEVEL_1, LEVEL_2, R_BELT_HIGH } from './params.js';
 import { loadBaseColorTextures } from './gltf-textures.js';
+import { SOCKET_ANGLES, SOCKET_FRAME, SOCKET_Z } from './sockets.js';
 
 const COMPONENT = {
   5121: Uint8Array,
@@ -85,17 +86,17 @@ async function loadImage(url) {
 // реалистичную ширину ~772 мм; ось Z уже направлена вверх после её root-transform.
 const MONITOR_SCALE = 72;
 // Монитор стоит на рабочей поверхности у передней внутренней стенки, напротив кресла.
-// Стенка пояса — цилиндр R1250: по центру она на отметке 200, а у краёв экрана
+// Стенка пояса — цилиндр R1150: по центру она на отметке 200, а у краёв экрана
 // (±386 от оси) уже на 261. Задняя грань корпуса при этом смещении оказывается
 // на 308, то есть перед стенкой с зазором ~47 мм, а не утоплена в неё.
 const MONITOR_OFFSET = [CENTER, 500, LEVEL_1 + 274];
 
 // MacBook экспортирован в условных единицах: ширина корпуса 2,99. Масштаб ниже
 // даёт паспортные 356 мм. Ноутбук отнесён от монитора по дуге и слегка развернут
-// к человеку; его дальний угол остаётся перед внутренней стенкой R1250, а не
-// входит в неё.
+// к человеку; дальний угол крышки остаётся перед внутренней стенкой R1150
+// с зазором около 37 мм.
 const LAPTOP_SCALE = 356 / 2.99;
-const LAPTOP_OFFSET = [2150, 790, LEVEL_1 - 0.2];
+const LAPTOP_OFFSET = [CENTER + 615, 775, LEVEL_1 - 0.2];
 
 // Разворот ноутбука вокруг вертикали. Одно значение на загрузчик и на анимацию
 // крышки: раньше загрузчик поворачивал модель на 18°, а laptop-motion.js
@@ -120,13 +121,13 @@ export const LAPTOP_HINGE = (() => {
   ];
 })();
 
-// Surface Headphones лежат на наружных плоскостях чашек, а не стоят обручем.
-// Исходная модель уже в миллиметровом масштабе, но примерно втрое крупнее натуры.
-// Перенос локального минимума Z в ноль гарантирует реальный контакт со столешницей.
-const HEADPHONES_SCALE = 0.3;
-const HEADPHONES_CENTER = [0.0634204557, 523.0688263876];
-const HEADPHONES_BOTTOM = -174.4373833565;
-const HEADPHONES_OFFSET = [2470, 1100, LEVEL_1];
+// Наушники на подставке — облегчённая копия Sketchfab-модели (150 МБ → 3,9 МБ,
+// текстуры 1024). В файле уже метры и реальный размер: высота 320 мм, основание
+// подставки Ø184, центр основания в нуле, низ на Z = 0 (Z вверх в Blender).
+// Место — левый передний угол второго уровня, зеркально растению справа: здесь
+// верхняя столешница самая широкая. Ось основания на R≈1420 по диагонали −45°:
+// до кромки выступа R1090 остаётся больше 230 мм, до наружного угла — около 300.
+const HEADPHONES_OFFSET = [CENTER + 1004, CENTER - 1004, LEVEL_2];
 
 // Горшок стоит на втором уровне напротив ноутбука. Масштаб 500 даёт крону
 // около 383 мм и высоту 491 мм, а основание горшка — около 170 мм.
@@ -141,13 +142,13 @@ const PLANT_OFFSET = [480, 450, LEVEL_2 - PLANT_BOTTOM * PLANT_SCALE];
 // точно на рабочую поверхность первого уровня; блок камер остаётся сверху.
 const IPHONE_SCALE = 1000;
 const IPHONE_SCREEN_BOTTOM = -0.0043750028;
-const IPHONE_OFFSET = [850, 850, LEVEL_1 - IPHONE_SCREEN_BOTTOM * IPHONE_SCALE];
+const IPHONE_OFFSET = [CENTER - 710, CENTER - 470, LEVEL_1 - IPHONE_SCREEN_BOTTOM * IPHONE_SCALE];
 
 // Bambu Lab A1 mini: реальные габариты 347 × 315 × 365 мм.
 // Стоит на правой части рабочей поверхности: ближе к боковой стенке, рядом с
 // iPhone, но вне зоны прохода и Bridge.
 const PRINTER_SCALE = [490.4, 430.8, 510.3];
-const PRINTER_OFFSET = [449, 1700, LEVEL_1 - 0.6];
+const PRINTER_OFFSET = [449, CENTER + 250, LEVEL_1 - 0.6];
 
 // Gaming Chair экспортирован в условных сантиметровых единицах. Масштаб 2,55
 // даёт реальный габарит около 717 × 642 × 1152 мм. Центр исходной геометрии
@@ -157,7 +158,26 @@ const CHAIR_SCALE = 2.55;
 const CHAIR_CENTER = [0.4471421242, 93.4203135333];
 const CHAIR_BOTTOM = 34.5369549429;
 
-async function loadGlbGroups({ url, prefix, scale, offset, axis = (p) => p, normalAxis = (n) => n, turn = 0, flipX = false, tint = null, mono = false, skipMaterials = [], useEmissive = false, textureOverrides = {}, colorOverrides = {}, partForNode = null }) {
+// Кружка экспортирована в метрах, но узел Sketchfab дополнительно увеличивает её
+// в 2,15 раза. Масштаб 1000 / 2,1499 возвращает реальные Ø82 × 95 мм и пробковую
+// подставку Ø100 × 6 мм; её низ — ноль модели, он ложится на рабочую поверхность.
+// Место — справа от мыши, перед монитором, вне ножки его подставки, внутри
+// кольца R500…R1150 (ось на R≈905, ручка и подставка до R≈990).
+const MUG_SCALE = 1000 / 2.149899959564209;
+const MUG_OFFSET = [CENTER - 650, 720, LEVEL_1];
+// Вместо исходного зелёного — тёмно-серая глазурь.
+export const MUG_COLOR = [0.2, 0.205, 0.21];
+
+// Розетка — правая из двух рамок в GLB (узел 3 «power socket»; левая — пустая
+// заглушка). Её координаты берутся в системе самого узла: рамка 2 × 2 единицы,
+// X — вертикаль (заземляющие контакты сверху и снизу), Y — горизонталь,
+// Z — наружу, задняя плоскость рамки на Z = 0. Гнездо уходит в стенку на 10 мм,
+// под него в стенке вырезано отверстие (sockets.js, build-core.js).
+// Места трёх рамок и высота — в sockets.js.
+const SOCKET_NODE = 3;
+const SOCKET_MM = SOCKET_FRAME / 2;
+
+async function loadGlbGroups({ url, prefix, scale, offset, axis = (p) => p, normalAxis = (n) => n, turn = 0, flipX = false, tint = null, mono = false, skipMaterials = [], useEmissive = false, textureOverrides = {}, colorOverrides = {}, partForNode = null, rootNode = null }) {
   const response = await fetch(url);
   if (!response.ok) throw new Error(`GLB не загружен: ${response.status}`);
   const buffer = await response.arrayBuffer();
@@ -178,14 +198,17 @@ async function loadGlbGroups({ url, prefix, scale, offset, axis = (p) => p, norm
   }));
   const parent = [];
   json.nodes.forEach((node, i) => node.children?.forEach((child) => { parent[child] = i; }));
-  const world = (index) => parent[index] === undefined
+  // rootNode: берём одну ветку файла в собственных координатах её узла.
+  const underRoot = (index) => rootNode === null || index === rootNode
+    || (parent[index] !== undefined && underRoot(parent[index]));
+  const world = (index) => index === rootNode ? IDENTITY : parent[index] === undefined
     ? (json.nodes[index].matrix || IDENTITY)
     : multiply(world(parent[index]), json.nodes[index].matrix || IDENTITY);
   const groups = [];
   const [scaleX, scaleY, scaleZ] = Array.isArray(scale) ? scale : [scale, scale, scale];
 
   json.nodes.forEach((node, nodeIndex) => {
-    if (node.mesh === undefined) return;
+    if (node.mesh === undefined || !underRoot(nodeIndex)) return;
     const matrix = world(nodeIndex);
     for (const primitive of json.meshes[node.mesh].primitives) {
       if (primitive.mode !== undefined && primitive.mode !== 4) continue;
@@ -203,6 +226,12 @@ async function loadGlbGroups({ url, prefix, scale, offset, axis = (p) => p, norm
       const uvSource = texture && primitive.attributes.TEXCOORD_0 !== undefined
         ? accessor(json, binary, primitive.attributes.TEXCOORD_0)
         : null;
+      // KHR_texture_transform: мелкая повторяющаяся текстура (пробка у подставки
+      // кружки) задана масштабом UV. Без него на подставку растягивался бы один
+      // увеличенный фрагмент. Поворот UV в наших моделях не встречается.
+      const uvTransform = material?.pbrMetallicRoughness?.baseColorTexture?.extensions?.KHR_texture_transform;
+      const uvOffset = uvTransform?.offset || [0, 0];
+      const uvScale = uvTransform?.scale || [1, 1];
       const count = indices ? indices.length : positions.length / 3;
       const position = new Float32Array(count * 3);
       const normal = new Float32Array(count * 3);
@@ -224,7 +253,10 @@ async function loadGlbGroups({ url, prefix, scale, offset, axis = (p) => p, norm
         position.set([offset[0] + px, offset[1] + py, offset[2] + p[2] * scaleZ], i * 3);
         normal.set([n[0] * cos - n[1] * sin, n[0] * sin + n[1] * cos, n[2]], i * 3);
         color.set(color0, i * 3);
-        if (uv) uv.set([uvSource[source * 2], uvSource[source * 2 + 1]], i * 2);
+        if (uv) uv.set([
+          uvOffset[0] + uvSource[source * 2] * uvScale[0],
+          uvOffset[1] + uvSource[source * 2 + 1] * uvScale[1],
+        ], i * 2);
       }
       // Некоторые GLB помечают декоративные текстуры как emissive. Включаем
       // самосвечение только для моделей, где оно проверено явно: иначе экран
@@ -289,17 +321,16 @@ export const loadLaptopGroups = () => loadGlbGroups({
   partForNode: (nodeIndex) => (nodeIndex >= 17 && nodeIndex <= 23 ? 'laptop-lid' : null),
 });
 
-// Наушники находятся ещё левее MacBook и заметно дальше по дуге столешницы.
-// Более сильный поворот повторяет радиальное направление рабочей зоны, а вся
-// опорная плоскость остаётся внутри окружности R1250 и не заходит в высокий пояс.
+// Разворот на 225°: наушники обращены к сидящему лицевой стороной, стойка
+// подставки за ними, кабель уходит к наружной кромке, а не к человеку.
 export const loadHeadphonesGroups = () => loadGlbGroups({
-  url: 'assets/3d/microsoft_headphones_surface_2.glb',
+  url: 'assets/3d/headphone_stand.glb',
   prefix: 'headphones',
-  scale: HEADPHONES_SCALE,
+  scale: 1000,
   offset: HEADPHONES_OFFSET,
-  axis: ([x, y, z]) => [x - HEADPHONES_CENTER[0], y - HEADPHONES_CENTER[1], z - HEADPHONES_BOTTOM],
-  normalAxis: ([x, y, z]) => [x, y, z],
-  turn: -32 * Math.PI / 180,
+  axis: ([x, y, z]) => [x, -z, y],
+  normalAxis: ([x, y, z]) => [x, -z, y],
+  turn: 225 * Math.PI / 180,
 });
 
 // Центр основания лежит между внутренней кромкой верхнего кольца и наружным
@@ -350,7 +381,7 @@ export const loadMouseGroups = () => loadGlbGroups({
 });
 
 // Телефон лежит справа от мыши в свободной части Sector. Все его углы остаются
-// между кромкой отверстия R600 и внутренней стенкой R1250.
+// между кромкой отверстия R500 и внутренней стенкой R1150.
 export const loadIphoneGroups = () => loadGlbGroups({
   url: 'assets/3d/iphone_17_pro.glb',
   prefix: 'iphone',
@@ -374,3 +405,37 @@ export const loadPrinterGroups = () => loadGlbGroups({
   normalAxis: ([x, y, z]) => [x, z, y],
   turn: 0,
 });
+
+// Кружка стоит справа от мыши; ручка развёрнута к правой руке сидящего.
+export const loadMugGroups = () => loadGlbGroups({
+  url: 'assets/3d/coffee_mug.glb',
+  prefix: 'mug',
+  scale: MUG_SCALE,
+  offset: MUG_OFFSET,
+  // Высота в GLB — по Y. Поворот (а не зеркало) сохраняет направление нормалей.
+  axis: ([x, y, z]) => [x, -z, y],
+  normalAxis: ([x, y, z]) => [x, -z, y],
+  turn: -60 * Math.PI / 180,
+  colorOverrides: { Mug_AppleGreen_Export: MUG_COLOR },
+});
+
+// Три розетки на внутренней стенке пояса. У каждой своя касательная к цилиндру
+// R1150: локальный X рамки — вверх, Y — по касательной, Z — по нормали внутрь,
+// к человеку. Задняя плоскость рамки ложится на касательную; на кривизне
+// рамки 84 мм это 0,8 мм.
+const loadSocketAt = (angle, index) => {
+  const c = Math.cos(angle), s = Math.sin(angle);
+  const wall = [CENTER + R_BELT_HIGH * c, CENTER + R_BELT_HIGH * s];
+  const place = ([x, y, z]) => [-s * y - c * z, c * y - s * z, x];
+  return loadGlbGroups({
+    url: 'assets/3d/power_socket.glb',
+    prefix: `socket-${index}`,
+    rootNode: SOCKET_NODE,
+    scale: SOCKET_MM,
+    offset: [wall[0], wall[1], SOCKET_Z],
+    axis: place,
+    normalAxis: (n) => { const [x, y, z] = place(n); const l = Math.hypot(x, y, z) || 1; return [x / l, y / l, z / l]; },
+  });
+};
+
+export const loadSocketGroups = async () => (await Promise.all(SOCKET_ANGLES.map(loadSocketAt))).flat();

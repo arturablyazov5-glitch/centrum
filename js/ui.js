@@ -1,17 +1,24 @@
 import { CENTRUM_CONFIG } from './centrum-config.js';
 import { formatPrice, formatPriceDelta } from './pricing.js';
+import { toggleControl } from './toggle.js';
 
 const escapeHTML = (value) => String(value).replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]);
 
-function optionButton({ key, option, selected, type, details = '' }) {
-  const swatch = option.swatch ? `<span class="material-preview" style="--swatch:${option.swatch}"></span>` : '';
-  return `<button class="option-card ${selected ? 'is-selected' : ''}" type="button" data-option-type="${type}" data-option-key="${key}" aria-pressed="${selected}">
-    ${swatch}<span class="option-copy"><strong>${escapeHTML(option.name)}</strong><span>${escapeHTML(option.description || details)}</span><em>${formatPriceDelta(option.price)}</em></span>
+// Готовые цвета для RGB; любой другой выбирается палитрой.
+const RGB_PRESETS = ['#ff4d4d', '#ff9f43', '#ffe066', '#51e08a', '#38d9f5', '#4d7cff', '#a66bff', '#ff5fc8'];
+
+// dot — цвет света кружком у названия. Фото отделки нужно только дереву:
+// у света нет фактуры, есть только цвет.
+function optionButton({ key, option, selected, type, details = '', dot = '' }) {
+  const swatch = option.swatch && !dot ? `<span class="material-preview" style="--swatch:${option.swatch}"></span>` : '';
+  const title = dot ? `<strong class="option-title"><i class="option-dot" style="--dot:${dot}"></i>${escapeHTML(option.name)}</strong>` : `<strong>${escapeHTML(option.name)}</strong>`;
+  return `<button class="option-card ${dot ? 'option-card--dot' : ''} ${selected ? 'is-selected' : ''}" type="button" data-option-type="${type}" data-option-key="${key}" aria-pressed="${selected}">
+    ${swatch}<span class="option-copy">${title}<span>${escapeHTML(option.description || details)}</span><em>${formatPriceDelta(option.price)}</em></span>
   </button>`;
 }
 
 function switchRow(key, option, checked, note = '') {
-  return `<label class="switch-row"><span><strong>${escapeHTML(option.name)}</strong><small>${escapeHTML(option.description || note)}</small><em>${formatPriceDelta(option.price)}</em></span><input type="checkbox" data-toggle="${key}" ${checked ? 'checked' : ''}><i aria-hidden="true"></i></label>`;
+  return `<label class="switch-row"><span><strong>${escapeHTML(option.name)}</strong><small>${escapeHTML(option.description || note)}</small><em>${formatPriceDelta(option.price)}</em></span>${toggleControl({ checked, attrs: `data-toggle="${key}"` })}</label>`;
 }
 
 export function renderNavigation(root, activeCategory, onNavigate) {
@@ -19,7 +26,12 @@ export function renderNavigation(root, activeCategory, onNavigate) {
   root.querySelectorAll('[data-category]').forEach((button) => button.addEventListener('click', () => onNavigate(button.dataset.category)));
 }
 
-export function renderPanel(root, categoryId, configuration, price, onChange) {
+function rgbPicker(configuration) {
+  const current = configuration.ledRgb;
+  return `<div class="rgb-picker"><span>Цвет подсветки</span><div class="rgb-swatches">${RGB_PRESETS.map((color) => `<button type="button" class="rgb-swatch ${color === current ? 'is-selected' : ''}" style="--dot:${color}" data-rgb="${color}" aria-label="Цвет ${color}"></button>`).join('')}<label class="rgb-custom ${RGB_PRESETS.includes(current) ? '' : 'is-selected'}" style="--dot:${current}" title="Любой цвет"><input type="color" value="${current}" data-rgb-input aria-label="Выбрать любой цвет"></label></div></div>`;
+}
+
+export function renderPanel(root, categoryId, configuration, price, onChange, onLive = onChange) {
   const category = CENTRUM_CONFIG.categories.find((item) => item.id === categoryId) || CENTRUM_CONFIG.categories[0];
   let content = '';
   if (categoryId === 'finish') {
@@ -29,7 +41,7 @@ export function renderPanel(root, categoryId, configuration, price, onChange) {
   } else if (categoryId === 'electricity') {
     content = `<div class="option-grid single-grid">${Object.entries(CENTRUM_CONFIG.electricity).map(([key, option]) => optionButton({ key, option, selected: key === configuration.electricity, type: 'electricity', details: `${option.sockets220} × 220 В · ${option.usbC} × USB-C · ${option.usbA} × USB-A · ${option.qi} × Qi` })).join('')}</div>`;
   } else if (categoryId === 'lighting') {
-    content = `<div class="option-grid material-grid">${Object.entries(CENTRUM_CONFIG.lighting).filter(([key]) => key !== 'drawerLighting').map(([key, option]) => optionButton({ key, option: { ...option, description: option.temperature ? `${option.temperature} K` : 'Полноцветный сценарий' }, selected: key === configuration.ledTemperature, type: 'lighting' })).join('')}</div>${switchRow('drawerLighting', CENTRUM_CONFIG.lighting.drawerLighting, configuration.drawerLighting)}`;
+    content = `<div class="option-grid material-grid">${Object.entries(CENTRUM_CONFIG.lighting).filter(([key]) => key !== 'drawerLighting').map(([key, option]) => optionButton({ key, option: { ...option, description: option.temperature ? `${option.temperature} K` : 'Любой цвет' }, selected: key === configuration.ledTemperature, type: 'lighting', dot: key === 'rgb' ? (configuration.ledTemperature === 'rgb' ? configuration.ledRgb : 'conic-gradient(#ff4d4d, #ffe066, #51e08a, #38d9f5, #4d7cff, #ff5fc8, #ff4d4d)') : option.swatch })).join('')}</div>${configuration.ledTemperature === 'rgb' ? rgbPicker(configuration) : ''}${switchRow('drawerLighting', CENTRUM_CONFIG.lighting.drawerLighting, configuration.drawerLighting)}`;
   } else if (categoryId === 'techBay') {
     content = `<div class="included-badge">Входит в базу</div><div class="feature-list">${CENTRUM_CONFIG.techBay.map((item) => `<div><strong>${item.name}</strong><span>${item.detail}</span></div>`).join('')}</div>`;
   } else if (categoryId === 'audio') {
@@ -46,6 +58,19 @@ export function renderPanel(root, categoryId, configuration, price, onChange) {
     onChange({ [keyMap[button.dataset.optionType]]: button.dataset.optionKey });
   }));
   root.querySelectorAll('[data-step]').forEach((button) => button.addEventListener('click', () => onChange({ drawers: Math.max(CENTRUM_CONFIG.drawers.min, Math.min(CENTRUM_CONFIG.drawers.max, configuration.drawers + Number(button.dataset.step))) })));
+  // Цвет RGB меняется на лету: панель не перерисовываем, иначе палитра закроется.
+  const setRgb = (color) => {
+    root.querySelector('[data-option-key="rgb"] .option-dot')?.style.setProperty('--dot', color);
+    root.querySelectorAll('[data-rgb]').forEach((swatch) => swatch.classList.toggle('is-selected', swatch.dataset.rgb === color));
+    const custom = root.querySelector('.rgb-custom');
+    if (custom) { custom.style.setProperty('--dot', color); custom.classList.toggle('is-selected', !RGB_PRESETS.includes(color)); }
+    onLive({ ledRgb: color });
+  };
+  root.querySelectorAll('[data-rgb]').forEach((swatch) => swatch.addEventListener('click', () => {
+    root.querySelector('[data-rgb-input]').value = swatch.dataset.rgb;
+    setRgb(swatch.dataset.rgb);
+  }));
+  root.querySelector('[data-rgb-input]')?.addEventListener('input', (event) => setRgb(event.target.value.toLowerCase()));
   root.querySelectorAll('[data-toggle]').forEach((input) => input.addEventListener('change', () => onChange({ [input.dataset.toggle]: input.checked })));
 }
 
@@ -57,7 +82,7 @@ function summaryRows(configuration, price) {
     ['Отделка', CENTRUM_CONFIG.wood[configuration.wood].name],
     ['Хранение', `${configuration.drawers} ${configuration.drawers === 1 ? 'ящик' : configuration.drawers < 5 ? 'ящика' : 'ящиков'}`],
     ['Электрика', CENTRUM_CONFIG.electricity[configuration.electricity].name],
-    ['Освещение', CENTRUM_CONFIG.lighting[configuration.ledTemperature].name],
+    ['Освещение', CENTRUM_CONFIG.lighting[configuration.ledTemperature].name + (configuration.ledTemperature === 'rgb' ? ` · ${configuration.ledRgb.toUpperCase()}` : '')],
     [CENTRUM_CONFIG.lighting.drawerLighting.name, yesNo(configuration.drawerLighting)],
     ['Tech Bay', 'Входит'],
     ['Акустика 5.1', yesNo(configuration.audio51)],

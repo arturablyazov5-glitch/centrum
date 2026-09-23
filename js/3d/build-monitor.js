@@ -19,7 +19,7 @@ const bottom = TOP - SCREEN_H;
 
 export function buildMonitor(mesh) {
   // Крепление к стенке: площадка на закладных и короткий переходник до панели.
-  // Стенка пояса — цилиндр R1250, поэтому у краёв экрана зазор меньше, чем по центру.
+  // Стенка пояса — цилиндр R1150, поэтому у краёв экрана зазор меньше, чем по центру.
   addPrism(mesh, [[CENTER - 100, WALL_Y], [CENTER + 100, WALL_Y], [CENTER + 100, WALL_Y + 22], [CENTER - 100, WALL_Y + 22]],
     ARM_Z - 120, ARM_Z + 120, PALETTE.arm, { top: true, bottom: true });
   addPrism(mesh, [[CENTER - 60, WALL_Y + 22], [CENTER + 60, WALL_Y + 22], [CENTER + 60, SCREEN_Y - SCREEN_T], [CENTER - 60, SCREEN_Y - SCREEN_T]],

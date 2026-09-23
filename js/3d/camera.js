@@ -2,6 +2,7 @@
 // Ось Z в модели направлена вверх, поэтому вектор «вверх» для камеры — это [0, 0, 1].
 
 import { perspective, lookAt, normalize } from './mat4.js';
+import { CENTER } from './params.js';
 import { mirrorAzimuth } from './mirror.js';
 
 // Наклон ограничен только у самых полюсов: там взгляд совпал бы с осью «вверх»
@@ -33,7 +34,7 @@ export function fitDistance(base, aspect) {
 export function clampCamera(camera) {
   camera.elevation = Math.max(MIN_ELEVATION, Math.min(MAX_ELEVATION, camera.elevation));
   camera.distance = Math.max(MIN_DISTANCE, Math.min(MAX_DISTANCE, camera.distance));
-  const [cx, cy] = [1450, 1450];
+  const [cx, cy] = [CENTER, CENTER];
   camera.target[0] = Math.max(cx - TARGET_RANGE, Math.min(cx + TARGET_RANGE, camera.target[0]));
   camera.target[1] = Math.max(cy - TARGET_RANGE, Math.min(cy + TARGET_RANGE, camera.target[1]));
   camera.target[2] = Math.max(-1500, Math.min(6000, camera.target[2]));

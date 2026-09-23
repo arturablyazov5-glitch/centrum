@@ -2,7 +2,7 @@
 // Карточка встаёт первой секцией листа, сразу под шапкой: объёмная модель —
 // это то, с чего смотрят проект, а чертежи идут после неё.
 
-import { createCard } from './card.js?v=20260909-02';
+import { createCard } from './card.js?v=20260923-sockets3';
 
 function mount() {
   const monolith = document.querySelector('.sheet.monolith');

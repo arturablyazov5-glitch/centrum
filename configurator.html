@@ -20,7 +20,13 @@
     <title>CENTRUM — конфигуратор</title>
     <meta name="robots" content="noindex, follow">
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="toggle.css">
     <link rel="stylesheet" href="configurator.css">
+    <!-- Внутри лендинга конфигуратор — просто ещё один блок: без своего логотипа, рамок и фона. -->
+    <script>if (window.self !== window.top || /[?&]embed\b/.test(location.search)) document.documentElement.classList.add('is-embed');</script>
   </head>
   <body>
     <div class="configurator-shell">
@@ -38,8 +44,13 @@
         <nav class="category-nav" id="category-nav" aria-label="Категории конфигуратора"></nav>
         <section class="scene" aria-label="Интерактивная 3D-модель CENTRUM">
           <canvas id="centrum-canvas" tabindex="0" aria-label="3D-модель CENTRUM. Перетащите для поворота, используйте колесо для масштаба."></canvas>
-          <div class="scene-loader" id="scene-loader"><strong>CENTRUM</strong><span>Loading 3D...</span></div>
+          <div class="scene-loader" id="scene-loader"><strong>CENTRUM</strong><span>Загрузка 3D…</span></div>
           <div class="hotspots" id="hotspots"></div>
+          <label class="toggle-pill scene-led">
+            <span>Подсветка</span>
+            <input type="checkbox" class="toggle-input" data-led-power aria-label="Включить LED-подсветку в 3D-сцене" checked>
+            <span class="toggle" aria-hidden="true"></span>
+          </label>
           <div class="scene-help">Перетащите, чтобы повернуть · колесо — масштаб</div>
         </section>
         <aside class="options-panel" id="options-panel" aria-live="polite"></aside>
@@ -71,6 +82,6 @@
       </div>
     </div>
     <div class="toast" id="toast" hidden></div>
-    <script type="module" src="js/configurator.js?v=20260911-1"></script>
+    <script type="module" src="js/configurator.js?v=20260923-2"></script>
   </body>
 </html>

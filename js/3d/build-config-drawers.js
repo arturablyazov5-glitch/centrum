@@ -3,8 +3,7 @@
 
 import { createMesh, toBufferData } from './mesh.js';
 import { buildDrawer } from './build-drawer.js';
-import { Y0, Y1, GAP, DRAWER_TOP } from './drawer-geometry.js';
-import { PLINTH } from './params.js';
+import { gridCells } from './drawer-geometry.js';
 import { mirrorBuffers } from './mirror.js';
 
 function rowCounts(count) {
@@ -14,20 +13,7 @@ function rowCounts(count) {
   return Array.from({ length: rows }, (_, index) => base + (index < extra ? 1 : 0));
 }
 
-function cellsFor(count) {
-  const rows = rowCounts(count);
-  const height = (DRAWER_TOP - PLINTH - GAP * (rows.length - 1)) / rows.length;
-  const cells = [];
-  rows.forEach((columns, row) => {
-    const width = (Y1 - Y0 - GAP * (columns - 1)) / columns;
-    for (let column = 0; column < columns; column++) {
-      const y0 = Y0 + column * (width + GAP);
-      const z0 = PLINTH + row * (height + GAP);
-      cells.push({ index: cells.length, column, row, y0, y1: y0 + width, z0, z1: z0 + height });
-    }
-  });
-  return cells;
-}
+const cellsFor = (count) => gridCells(rowCounts(count));
 
 export function buildConfigDrawerGroups() {
   return Array.from({ length: 9 }, (_, index) => {

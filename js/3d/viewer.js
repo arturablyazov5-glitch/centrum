@@ -1,7 +1,7 @@
 // Вьювер: связывает модель, камеру, управление и подвижные узлы в один объект
 // с понятным интерфейсом. Кадр считается только тогда, когда что-то изменилось.
 
-import { buildModel } from './build-model.js?v=20260921-01';
+import { buildModel } from './build-model.js?v=20260923-sockets';
 import { createRenderer } from './renderer.js?v=20260921-03';
 import { createCamera, viewMatrix, projectionMatrix, clampCamera, fitDistance, eyePosition, fadeDistance, VIEWS } from './camera.js';
 import { createFocus } from './focus.js';
@@ -12,7 +12,7 @@ import { createFridgeMotion } from './fridge-motion.js';
 import { createDrawerMotion } from './drawer-motion.js';
 import { createLaptopMotion } from './laptop-motion.js';
 import { CELLS } from './build-drawers.js';
-import { loadMonitorGroups, loadLaptopGroups, loadHeadphonesGroups, loadPlantGroups, loadKeyboardGroups, loadMouseGroups, loadChairGroups, loadIphoneGroups, loadPrinterGroups } from './load-monitor.js?v=20260908-2';
+import { loadMonitorGroups, loadLaptopGroups, loadHeadphonesGroups, loadPlantGroups, loadKeyboardGroups, loadMouseGroups, loadChairGroups, loadIphoneGroups, loadPrinterGroups, loadMugGroups, loadSocketGroups } from './load-monitor.js?v=20260923-sockets3';
 import { buildConfigDrawerGroups } from './build-config-drawers.js';
 import { multiply } from './mat4.js';
 
@@ -173,6 +173,8 @@ export function createViewer(canvas, { productOnly = false } = {}) {
     ['mouse', 'Мышь', loadMouseGroups],
     ['iphone', 'iPhone', loadIphoneGroups],
     ['printer', '3D-принтер', loadPrinterGroups],
+    ['mug', 'Кружка', loadMugGroups],
+    ['socket', 'Розетка', loadSocketGroups],
     ['chair', 'Кресло', loadChairGroups],
   ];
   const loaded = {};
@@ -349,7 +351,9 @@ export function createViewer(canvas, { productOnly = false } = {}) {
   frame = requestAnimationFrame(loop);
 
   // Рендер останавливается, когда карточка ушла с экрана.
-  const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; invalidate(); }, { threshold: 0 });
+  // Берём последнюю запись: пока iframe лендинга грузится, браузер может сложить
+  // в одну пачку «не видно» и «видно», и по первой сцена застывала навсегда.
+  const observer = new IntersectionObserver((entries) => { visible = entries[entries.length - 1].isIntersecting; invalidate(); }, { threshold: 0 });
   observer.observe(canvas);
   window.addEventListener('resize', invalidate);
 
