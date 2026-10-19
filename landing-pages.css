@@ -1,0 +1,64 @@
+/* Дополнительные информационные страницы: общая тема и компоненты — landing.css. */
+body.info-page { overflow-x: visible; }
+.info-page .site-head { background: rgba(8, 8, 10, .96); border-bottom-color: var(--line); }
+.info-page .site-head .logo { flex-shrink: 0; }
+.info-page .site-nav a[aria-current="page"] { color: var(--accent); }
+.article { max-width: var(--container-max); margin: auto; padding: 120px var(--container-gutter) 72px; }
+.breadcrumbs { font-size: 14px; color: var(--muted); }
+.breadcrumbs ol { display: flex; flex-wrap: wrap; gap: 8px 16px; list-style: none; padding: 0; margin: 0; }
+.breadcrumbs li + li::before { content: '/'; color: var(--dim); margin-right: 16px; }
+.breadcrumbs a { text-underline-offset: 4px; }
+.article-intro { padding: 48px 0 56px; border-bottom: 1px solid var(--line); }
+.eyebrow { color: var(--accent); font-size: 13px; letter-spacing: .06em; margin-bottom: 24px; }
+.article h1 { max-width: 17ch; font-size: clamp(38px, 5.2vw, 72px); overflow-wrap: anywhere; }
+.article-lead { max-width: 48ch; font-size: clamp(19px, 2vw, 25px); color: var(--muted); margin-top: 28px; line-height: 1.45; }
+.article-section { padding-top: 56px; }
+.article-section > h2 { font-size: clamp(28px, 3.2vw, 42px); margin-bottom: 24px; }
+.article-section h3 { margin: 28px 0 14px; }
+.article-section p + p, .article-section p + .btn { margin-top: 20px; }
+.article-section p { max-width: 76ch; color: var(--muted); }
+.article table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 28px 0 8px; font-size: 16px; }
+.article th, .article td { text-align: left; vertical-align: top; padding: 18px 16px; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+.article th { font-weight: 500; }
+.article thead { background: var(--bg-card); color: var(--accent); }
+.article td { color: var(--muted); }
+.formula-card { padding: 28px; margin-top: 16px; background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius); }
+.formula-card h3 { margin-top: 0; }
+.formula-card .formula { color: var(--text); font-size: clamp(19px, 2.4vw, 30px); line-height: 1.45; margin-top: 18px; }
+.article-figure { margin: 48px 0 0; }
+.article-figure img { width: 100%; height: auto; border-radius: var(--radius); }
+.article-figure figcaption { color: var(--muted); font-size: 13px; margin-top: 12px; }
+.article-section .base-price { font-size: clamp(36px, 5vw, 64px); color: var(--accent); letter-spacing: -.04em; margin-bottom: 20px; }
+.included-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 36px; padding-left: 22px; margin: 28px 0; }
+.included-list li::marker { color: var(--accent); }
+.related-pages { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 64px; }
+.related-pages a { display: flex; justify-content: space-between; gap: 16px; padding: 24px; border: 1px solid var(--line-strong); border-radius: var(--radius); text-decoration: none; }
+.related-pages a:hover { border-color: var(--accent); }
+.related-pages span { color: var(--accent); }
+.article-cta { display: flex; align-items: center; justify-content: space-between; gap: 28px; margin-top: 40px; padding: 32px; background: var(--bg-card); border-radius: var(--radius); }
+.article-cta h2 { font-size: 28px; }
+.article-cta p { color: var(--muted); margin-top: 12px; }
+.article-cta .btn { flex-shrink: 0; }
+.faq-list { padding-top: 0; }
+.faq-answer { padding: 36px 0; border-bottom: 1px solid var(--line); }
+.faq-answer h2 { font-size: clamp(24px, 2.4vw, 32px); margin-bottom: 18px; }
+.info-page .foot-nav { display: flex; flex-wrap: wrap; gap: 14px 24px; }
+.info-page .site-foot { padding-bottom: 40px; }
+@media (max-width: 860px) {
+  .article { padding-top: 104px; }
+  .article-cta { flex-direction: column; align-items: flex-start; }
+}
+@media (max-width: 520px) {
+  .info-page .site-head { gap: 12px; }
+  .info-page .site-head .logo img { width: 108px; }
+  .info-page .site-head .btn { padding: 10px 14px; font-size: 13px; }
+  .article-intro { padding: 32px 0; }
+  .article-section { padding-top: 36px; }
+  .faq-list { padding-top: 0; }
+  .article table { font-size: 13px; }
+  .article th, .article td { padding: 12px 7px; }
+  .formula-card { padding: 20px 16px; }
+  .included-list, .related-pages { grid-template-columns: minmax(0, 1fr); }
+  .article-cta { padding: 24px 18px; }
+  .article-cta .btn { white-space: normal; max-width: 100%; text-align: center; }
+}
