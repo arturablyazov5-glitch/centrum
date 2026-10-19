@@ -2,6 +2,15 @@
 // Конфигуратор тянет WebGL-сцену и GLB-модели, поэтому iframe получает src только
 // при приближении к секции — иначе первый экран грузится вместе со всей 3D-сценой.
 
+import { CENTRUM_CONFIG } from './centrum-config.js';
+import { calculatePrice, formatPrice, formatPriceDelta } from './pricing.js';
+import { POWER_PACKAGES } from './3d/sockets.js';
+import { readConfigurationFromURL } from './url-state.js';
+import { worktopPadDiagram } from './worktop-pad-diagram.js';
+
+const padPlan = document.querySelector('[data-pad-plan]');
+if (padPlan) padPlan.innerHTML = worktopPadDiagram();
+
 const head = document.getElementById('site-head');
 if (head) {
   const onScroll = () => head.classList.toggle('is-stuck', window.scrollY > 24);
@@ -39,6 +48,75 @@ if (frame) {
   );
   frameObserver.observe(frame.closest('.configurator-frame'));
 }
+
+// Пресеты: href карточки — это ссылка на конфигурацию. Цена и опции читаются из неё
+// тем же кодом, что и в конфигураторе, поэтому не расходятся с прайсом.
+const drawersWord = (n) => (n % 10 === 1 && n % 100 !== 11 ? 'ящик' : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 'ящика' : 'ящиков');
+const presetTags = (c) => {
+  const light = CENTRUM_CONFIG.lighting[c.ledTemperature];
+  return [
+    { text: CENTRUM_CONFIG.wood[c.wood].name, swatch: CENTRUM_CONFIG.wood[c.wood].swatch },
+    { text: `${c.drawers} ${drawersWord(c.drawers)}` },
+    { text: `Питание ${CENTRUM_CONFIG.electricity[c.electricity].name}` },
+    { text: light.temperature ? `Свет ${light.temperature} K` : 'RGB-свет', swatch: light.temperature ? light.swatch : c.ledRgb },
+    c.drawerLighting && { text: 'Подсветка ящиков' },
+    c.audio51 && { text: 'Звук 5.1' },
+    c.monitors > 1 && { text: `${c.monitors} экрана` },
+  ].filter(Boolean);
+};
+
+document.querySelectorAll('[data-preset]').forEach((card) => {
+  const url = new URL(card.getAttribute('href'), location.href);
+  const configuration = readConfigurationFromURL(url.search);
+  card.querySelector('[data-preset-price]').textContent = formatPrice(calculatePrice(configuration).totalPrice);
+  card.querySelector('[data-preset-tags]').replaceChildren(
+    ...presetTags(configuration).map(({ text, swatch }) => {
+      const li = document.createElement('li');
+      if (swatch) {
+        const dot = document.createElement('i');
+        dot.style.background = swatch;
+        li.append(dot);
+      }
+      li.append(text);
+      return li;
+    }),
+  );
+
+  // Без JS ссылка откроет конфигуратор отдельной страницей; с JS — сборка грузится во встроенный.
+  if (!frame) return;
+  card.addEventListener('click', (event) => {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+    event.preventDefault();
+    const src = `${frame.dataset.src.split('?')[0]}${url.search}`;
+    frame.dataset.src = src;
+    if (frame.getAttribute('src')) {
+      frame.classList.remove('is-ready');
+      loader?.classList.remove('is-hidden');
+      frame.src = src;
+    }
+    document.getElementById('configurator')?.scrollIntoView({ behavior: 'smooth' });
+  });
+});
+
+// Цена опции 5.1 в блоке «Звук» берётся из прайса, как у пресетов.
+document.querySelectorAll('[data-audio-price]').forEach((el) => {
+  el.textContent = `+${formatPrice(CENTRUM_CONFIG.audio.audio51.price)}`;
+});
+
+// Цены отделки совпадают с конфигуратором и берутся из общего прайса.
+document.querySelectorAll('[data-finish-price]').forEach((el) => {
+  el.textContent = formatPriceDelta(CENTRUM_CONFIG.wood[el.dataset.finishPrice].price);
+});
+
+// Цена пары боковых панелей для наушников — из прайса.
+document.querySelectorAll('[data-phones-price]').forEach((el) => {
+  el.textContent = formatPrice(CENTRUM_CONFIG.audio.headphoneSides.price);
+});
+
+// Цена дополнительной стойки под экран — из прайса.
+document.querySelectorAll('[data-monitor-price]').forEach((el) => {
+  el.textContent = formatPrice(CENTRUM_CONFIG.monitor.post.price);
+});
 
 document.querySelectorAll('[data-light-demo]').forEach((demo) => {
   const toggle = demo.querySelector('[data-light-toggle]');
@@ -137,3 +215,70 @@ if (sticky && configurator) {
   addEventListener('scroll', update, { passive: true });
   addEventListener('resize', update);
 }
+
+// Цена накладки общая с конфигуратором.
+document.querySelectorAll('[data-pad-price]').forEach((el) => { el.textContent = formatPriceDelta(CENTRUM_CONFIG.worktopPad.price); });
+
+// Электрика: три кадра одного ракурса, пакет выбирается табами. Числа, цена
+// и схема постов — из centrum-config.js и js/3d/sockets.js, как в конфигураторе.
+document.querySelectorAll('[data-power-demo]').forEach((demo) => {
+  const tabs = [...demo.querySelectorAll('[data-power-tab]')];
+  const thumb = demo.querySelector('.power-tabs-thumb');
+  const posts = demo.querySelector('[data-power-posts]');
+  const slots = { left: Math.max(...Object.values(POWER_PACKAGES).map((p) => p.left.length)),
+    right: Math.max(...Object.values(POWER_PACKAGES).map((p) => p.right.length)) };
+  const post = (id, side) => {
+    const kinds = POWER_PACKAGES[id][side], base = POWER_PACKAGES.base[side];
+    const cells = Array.from({ length: slots[side] }, (_, i) => {
+      if (i >= kinds.length) return '<i class="is-empty"></i>';
+      return `<i data-kind="${kinds[i]}"${kinds[i] !== base[i] ? ' class="is-new"' : ''}></i>`;
+    });
+    // Посты растут от экрана к боку: левый на схеме читается справа налево.
+    return `<span class="power-post">${(side === 'left' ? cells.reverse() : cells).join('')}</span>`;
+  };
+  let current = null;
+  const select = (id, focus = false) => {
+    const option = CENTRUM_CONFIG.electricity[id];
+    if (!option) return;
+    demo.dataset.state = id;
+    tabs.forEach((tab) => {
+      const on = tab.dataset.powerTab === id;
+      tab.setAttribute('aria-selected', String(on));
+      tab.tabIndex = on ? 0 : -1;
+      if (on) {
+        thumb.style.width = `${tab.offsetWidth}px`;
+        thumb.style.transform = `translateX(${tab.offsetLeft}px)`;
+        if (focus) tab.focus();
+      }
+    });
+    demo.querySelectorAll('[data-power-count]').forEach((el) => {
+      const key = el.dataset.powerCount;
+      const value = String(option[key]);
+      if (el.textContent !== value && current) {
+        el.classList.remove('is-changing');
+        void el.offsetWidth;
+        el.classList.add('is-changing');
+      }
+      el.textContent = value;
+      el.classList.toggle('is-up', option[key] > CENTRUM_CONFIG.electricity.base[key]);
+    });
+    demo.querySelector('[data-power-price]').textContent = option.price ? formatPriceDelta(option.price) : 'В базе';
+    demo.querySelector('[data-power-note]').textContent = option.price ? 'к цене стола' : 'входит в стоимость стола';
+    demo.querySelector('[data-power-link]').href = `configurator.html?power=${id}&step=electricity`;
+    posts.innerHTML = `<span>Слева</span>${post(id, 'left')}<span class="power-screen"></span>${post(id, 'right')}<span>Справа</span>`;
+    current = id;
+  };
+  tabs.forEach((tab, index) => {
+    tab.addEventListener('click', () => select(tab.dataset.powerTab));
+    tab.addEventListener('keydown', (event) => {
+      const step = { ArrowRight: 1, ArrowLeft: -1 }[event.key];
+      if (!step) return;
+      event.preventDefault();
+      select(tabs[(index + step + tabs.length) % tabs.length].dataset.powerTab, true);
+    });
+  });
+  select(demo.dataset.state || 'base');
+  // Ширина табов известна только после загрузки шрифта.
+  document.fonts?.ready.then(() => select(current));
+  addEventListener('resize', () => select(current));
+});

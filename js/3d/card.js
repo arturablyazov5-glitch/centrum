@@ -1,7 +1,8 @@
 // Карточка «3D» в конце листа: разметка, кнопки и связь с вьювером.
 // Здесь нет ни геометрии, ни рендера — только интерфейс вокруг них.
 
-import { createViewer } from './viewer.js?v=20260923-sockets3';
+import { createViewer } from './viewer.js?v=20260926-phones';
+import { ELEC_LAYERS, ELEC_COLORS } from './build-electrics.js?v=20260926-elec';
 
 const DESCRIPTION = 'Объёмная модель построена по тем же числам, что и чертежи: габарит 2700 × 2700*, '
   + 'отверстие Ø1000*, пояс 300* до первого уровня и 200* выше, рабочая поверхность 820*, второй уровень 1270* '
@@ -54,6 +55,7 @@ export function createCard() {
       <div class="viewer-controls">
         <div class="viewer-row"><span class="viewer-label">Ракурс</span><div class="viewer-group" role="group" aria-label="Ракурс"></div></div>
         <div class="viewer-row"><span class="viewer-label">Сцена</span><div class="viewer-group" role="group" aria-label="Сцена"></div></div>
+        <div class="viewer-row"><span class="viewer-label">Электрика</span><div class="viewer-group" role="group" aria-label="Электрика"></div></div>
       </div>
       <footer><p>${DESCRIPTION}</p></footer>
     </article>`;
@@ -69,7 +71,7 @@ export function createCard() {
     return section;
   }
 
-  const [viewGroup, sceneGroup] = section.querySelectorAll('.viewer-group');
+  const [viewGroup, sceneGroup, elecGroup] = section.querySelectorAll('.viewer-group');
 
   const viewElements = new Map();
   const markView = (name) => {
@@ -103,6 +105,16 @@ export function createCard() {
     toggles.push({ el, key, initial });
   };
   for (const spec of SCENE_BUTTONS) addToggle(sceneGroup, spec);
+  // Схема проводки поверх корпуса, по системам (листы 12, 16, 50). Точка у
+  // кнопки — цвет линий этой системы в модели.
+  for (const { id, name } of ELEC_LAYERS) {
+    actions[`elec-${id}`] = (on) => viewer.setElectricLayer(id, on);
+    addToggle(elecGroup, [`elec-${id}`, name, false]);
+    const dot = document.createElement('span');
+    dot.className = 'viewer-dot';
+    dot.style.background = `rgb(${ELEC_COLORS[id].map((v) => Math.round(v * 255)).join(',')})`;
+    elecGroup.lastElementChild.prepend(dot);
+  }
 
   const reset = button('Сброс', false);
   reset.classList.add('viewer-reset');
@@ -115,6 +127,7 @@ export function createCard() {
     }
     viewer.setBridge(false);
     viewer.setFridge(false);
+    viewer.setTrash(false);
     viewer.setAllDrawers(false);
     viewer.setLaptop(true);
   };

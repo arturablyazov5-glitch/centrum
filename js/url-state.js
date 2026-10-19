@@ -5,6 +5,7 @@ const truthy = (value) => value === '1';
 export function readConfigurationFromURL(search = window.location.search) {
   const params = new URLSearchParams(search);
   const drawers = Number(params.get('drawers'));
+  const screens = Number(params.get('screens'));
   return {
     ...DEFAULT_CONFIGURATION,
     wood: Object.hasOwn(CENTRUM_CONFIG.wood, params.get('wood')) ? params.get('wood') : DEFAULT_CONFIGURATION.wood,
@@ -13,7 +14,9 @@ export function readConfigurationFromURL(search = window.location.search) {
     ledTemperature: Object.hasOwn(CENTRUM_CONFIG.lighting, params.get('light')) && params.get('light') !== 'drawerLighting' ? params.get('light') : DEFAULT_CONFIGURATION.ledTemperature,
     drawerLighting: truthy(params.get('drawerLight')),
     audio51: truthy(params.get('audio')),
-    monitorArm: truthy(params.get('arm')),
+    headphoneSides: truthy(params.get('phones')),
+    monitors: Number.isInteger(screens) && screens >= CENTRUM_CONFIG.monitor.included && screens <= CENTRUM_CONFIG.monitor.max ? screens : DEFAULT_CONFIGURATION.monitors,
+    worktopPad: truthy(params.get('pad')),
     ledRgb: /^[0-9a-f]{6}$/i.test(params.get('rgb') || '') ? `#${params.get('rgb').toLowerCase()}` : DEFAULT_CONFIGURATION.ledRgb,
   };
 }
@@ -27,7 +30,9 @@ function buildParams(configuration) {
   if (configuration.ledTemperature === 'rgb') params.set('rgb', configuration.ledRgb.slice(1));
   if (configuration.drawerLighting) params.set('drawerLight', '1');
   if (configuration.audio51) params.set('audio', '1');
-  if (configuration.monitorArm) params.set('arm', '1');
+  if (configuration.headphoneSides) params.set('phones', '1');
+  if (configuration.monitors > CENTRUM_CONFIG.monitor.included) params.set('screens', configuration.monitors);
+  if (configuration.worktopPad) params.set('pad', '1');
   return params;
 }
 

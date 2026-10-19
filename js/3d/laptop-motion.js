@@ -4,9 +4,9 @@
 
 import { identity, multiply, rotationZ, translation } from './mat4.js';
 import { createMotion } from './motion.js';
-import { LAPTOP_HINGE, LAPTOP_TURN } from './load-monitor.js';
+import { LAPTOP_HINGE, LAPTOP_TURN } from './props.js';
 
-// Ось шарнира и разворот приходят из загрузчика: там же задан offset модели,
+// Ось шарнира и разворот приходят из props.js: там же задан offset модели,
 // и держать их здесь отдельными числами нельзя — они разъезжаются молча.
 const HINGE = LAPTOP_HINGE;
 const MODEL_TURN = LAPTOP_TURN;

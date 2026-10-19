@@ -109,6 +109,64 @@ export function addTube(mesh, a, b, radius, color, { sides = 12, caps = true } =
   }
 }
 
+// Тело вращения вокруг оси a→b по профилю [[t, r], …]: отступ вдоль оси и радиус.
+// По окружности нормали гладкие, вдоль профиля у каждого участка свои — так
+// корпус газлифта читается круглым, а завальцовка, фаски и уступы остаются чёткими.
+export function addLathe(mesh, a, b, profile, color, { sides = 24 } = {}) {
+  const axis = norm(sub(b, a));
+  const guide = Math.abs(axis[2]) < 0.9 ? [0, 0, 1] : [1, 0, 0];
+  const u = norm(cross(axis, guide));
+  const v = cross(axis, u);
+  const dirs = Array.from({ length: sides }, (_, i) => {
+    const t = (i / sides) * Math.PI * 2;
+    return [Math.cos(t) * u[0] + Math.sin(t) * v[0], Math.cos(t) * u[1] + Math.sin(t) * v[1], Math.cos(t) * u[2] + Math.sin(t) * v[2]];
+  });
+  const at = (t, r, d) => [a[0] + axis[0] * t + d[0] * r, a[1] + axis[1] * t + d[1] * r, a[2] + axis[2] * t + d[2] * r];
+  const push = (p, n) => {
+    mesh.position.push(p[0], p[1], p[2]);
+    mesh.normal.push(n[0], n[1], n[2]);
+    mesh.color.push(color[0], color[1], color[2]);
+  };
+  const tri = (pa, pb, pc, na, nb, nc) => {
+    const face = cross(sub(pb, pa), sub(pc, pa));
+    if (Math.hypot(face[0], face[1], face[2]) < 1e-9) return;
+    // Обход по нормали наружу: Blender сглаживает по ней, а не по цвету.
+    if (face[0] * na[0] + face[1] * na[1] + face[2] * na[2] < 0) { push(pa, na); push(pc, nc); push(pb, nb); return; }
+    push(pa, na); push(pb, nb); push(pc, nc);
+  };
+  for (let k = 0; k < profile.length - 1; k++) {
+    const [t0, r0] = profile[k], [t1, r1] = profile[k + 1];
+    const len = Math.hypot(t1 - t0, r1 - r0);
+    if (len < 1e-9) continue;
+    const nt = -(r1 - r0) / len, nr = (t1 - t0) / len;
+    const normal = (d) => norm([axis[0] * nt + d[0] * nr, axis[1] * nt + d[1] * nr, axis[2] * nt + d[2] * nr]);
+    for (let i = 0; i < sides; i++) {
+      const di = dirs[i], dj = dirs[(i + 1) % sides];
+      const ni = normal(di), nj = normal(dj);
+      tri(at(t0, r0, di), at(t1, r1, di), at(t1, r1, dj), ni, ni, nj);
+      tri(at(t0, r0, di), at(t1, r1, dj), at(t0, r0, dj), ni, nj, nj);
+    }
+  }
+}
+
+// Плоская деталь по контуру в плоскости X–Z, толщиной вдоль Y: уши кронштейнов,
+// проушины. Контур выпуклый, в любом обходе.
+export function addPlateXZ(mesh, contour, [y0, y1], color) {
+  let area = 0;
+  for (let i = 0; i < contour.length; i++) {
+    const [ax, az] = contour[i], [bx, bz] = contour[(i + 1) % contour.length];
+    area += ax * bz - bx * az;
+  }
+  const ring = area < 0 ? contour.slice().reverse() : contour;
+  const face = (y) => ring.map(([x, z]) => [x, y, z]);
+  for (let i = 0; i < ring.length; i++) {
+    const [ax, az] = ring[i], [bx, bz] = ring[(i + 1) % ring.length];
+    addQuad(mesh, [ax, y1, az], [bx, y1, bz], [bx, y0, bz], [ax, y0, az], color);
+  }
+  addPolygon(mesh, face(y0), color);
+  addPolygon(mesh, face(y1).reverse(), color);
+}
+
 // Прямоугольный брусок по трём интервалам — самая частая форма у фурнитуры.
 export const addBox = (mesh, [x0, x1], [y0, y1], [z0, z1], color) =>
   addPrism(mesh, [[x0, y0], [x1, y0], [x1, y1], [x0, y1]], z0, z1, color, { top: true, bottom: true });
@@ -134,8 +192,9 @@ export function toBufferData(mesh) {
   // ничего не стоит по памяти на GPU сверх небольшого потока, зато одна и та же
   // древесная карта непрерывно проходит через Sector, верхний уровень и Bridge.
   const uv = new Float32Array((position.length / 3) * 2);
-  // Один квадрат изображения покрывает весь габарит 2900 мм: так на большой
-  // столешнице нет заметной сетки повторов, а рисунок шпона остаётся цельным.
+  // Один квадрат изображения — 2900 мм, с запасом на весь стол 2700: так на
+  // большой столешнице нет заметной сетки повторов, а рисунок шпона цельный.
+  // Это масштаб текстуры, а не габарит: смена числа меняет размер волокна.
   const textureSize = 2900;
   for (let i = 0; i < position.length / 3; i++) {
     uv[i * 2] = position[i * 3] / textureSize;

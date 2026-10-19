@@ -3,7 +3,7 @@
 
 import { SIZE } from './params.js';
 import { addQuad } from './mesh.js';
-import { PALETTE } from './palette.js?v=20260908-14';
+import { PALETTE } from './palette.js';
 
 const MARGIN = 1600;                 // запас пола вокруг пятна стола
 

@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1480 1000" width="1480" height="1000" font-family="Helvetica, Arial, sans-serif">
+<rect width="1480" height="1000" fill="#ffffff"/>
+<text x="40" y="38" font-size="24" font-weight="700" fill="#222">Наушники · три панели под кромкой</text>
+<text x="40" y="60" font-size="14" fill="#666">Вид сверху, экран вверху. Углы от оси экрана, минус — влево от сидящего.</text>
+<rect x="45" y="65" width="810" height="810" rx="60" fill="#f4f2ee" stroke="#999"/>
+<rect x="330" y="470" width="240" height="405" fill="#e6e4e0" stroke="#bbb"/>
+<text x="450.0" y="850.0" font-size="13" fill="#777" text-anchor="middle" font-weight="400">Bridge · вход</text>
+<circle cx="450" cy="470" r="345.0" fill="#fbfaf8" stroke="#555" stroke-width="1.5"/>
+<circle cx="450" cy="470" r="315.0" fill="none" stroke="#aaa" stroke-dasharray="4 4"/>
+<circle cx="450" cy="470" r="150.0" fill="#fff" stroke="#555" stroke-width="1.5"/>
+<rect x="110" y="65" width="150" height="170" fill="#e9e9e9" stroke="#999"/><rect x="110" y="235" width="66" height="66" fill="#dcdcdc" stroke="#999"/>
+<text x="185.0" y="140.0" font-size="14" fill="#444" text-anchor="middle" font-weight="400">Tech Bay</text>
+<text x="185.0" y="158.0" font-size="11" fill="#777" text-anchor="middle" font-weight="400">ПК + распределитель</text>
+<text x="143.0" y="318.0" font-size="11" fill="#777" text-anchor="middle" font-weight="400">шахта</text>
+<path d="M363.8,233.2 L372.1,230.3 L380.5,227.8 L389.0,225.5 L397.6,223.5 L406.2,221.8 L414.9,220.5 L423.7,219.4 L432.4,218.6 L441.2,218.2 L450.0,218.0 L458.8,218.2 L467.6,218.6 L476.3,219.4 L485.1,220.5 L493.8,221.8 L502.4,223.5 L511.0,225.5 L519.5,227.8 L527.9,230.3 L536.2,233.2" stroke="#222" stroke-width="7" fill="none" stroke-linecap="round"/>
+<text x="450.0" y="200.0" font-size="13" fill="#444" text-anchor="middle" font-weight="400">экран</text>
+<rect x="408" y="255" width="84" height="17" rx="3" fill="#d8d8d8" stroke="#999"/><ellipse cx="552" cy="275" rx="9" ry="17" fill="#d8d8d8" stroke="#999"/>
+<circle cx="450" cy="470" r="75.0" fill="#eeeeee" stroke="#aaa"/><ellipse cx="450" cy="470" rx="24.0" ry="30.0" fill="#cfcfcf" stroke="#888"/>
+<text x="450.0" y="532.0" font-size="12" fill="#777" text-anchor="middle" font-weight="400">кресло</text>
+<path d="M437.4,302.5 L426.8,161.0 L421.4,148.8 L410.7,147.5 L405.2,148.2 L399.7,149.0 L394.1,149.9 L388.6,150.9 L383.2,152.1 L377.7,153.2 L372.3,154.5 L366.9,155.9 L361.5,157.4 L356.1,159.0 L350.8,160.6 L345.5,162.4 L340.2,164.2 L334.9,166.2 L329.8,168.2 L324.6,170.3 L319.4,172.5 L314.3,174.8 L309.3,177.1 L304.3,179.6 L299.3,182.2 L294.4,184.8 L289.5,187.5 L284.7,190.3 L279.9,193.2 L275.2,196.2 L270.5,199.2 L265.8,202.3 L261.3,205.6 L256.7,208.8" fill="none" stroke="#e08a1e" stroke-width="9.6" stroke-opacity="0.25" stroke-linejoin="round"/>
+<path d="M450.0,311.6 L438.0,310.9 L437.4,302.5 L426.8,161.0 L421.4,148.8 L410.7,147.5 L405.2,148.2 L399.7,149.0 L394.1,149.9 L388.6,150.9 L383.2,152.1 L377.7,153.2 L372.3,154.5 L366.9,155.9 L361.5,157.4 L356.1,159.0 L350.8,160.6 L345.5,162.4 L340.2,164.2 L334.9,166.2 L329.8,168.2 L324.6,170.3 L319.4,172.5 L314.3,174.8 L309.3,177.1 L304.3,179.6 L299.3,182.2 L294.4,184.8 L289.5,187.5 L284.7,190.3 L279.9,193.2 L275.2,196.2 L270.5,199.2 L265.8,202.3 L261.3,205.6 L256.7,208.8 L228.0,221.8 L228.0,221.8 L228.0,221.8 L228.0,227.0 L135.0,227.0 L135.0,224.0" fill="none" stroke="#e08a1e" stroke-width="2" stroke-dasharray="6 4" opacity="0.9"/>
+<path d="M612.7,428.2 L770.2,387.8" fill="none" stroke="#3b7dd8" stroke-width="9.6" stroke-opacity="0.25" stroke-linejoin="round"/>
+<path d="M606.0,442.5 L604.6,430.3 L612.7,428.2 L770.2,387.8 L770.2,387.8 L770.2,387.8 L769.8,387.8 L769.8,323.9 L769.8,323.9 L793.8,312.9 L779.2,284.2 L762.2,256.9 L742.9,231.1 L721.5,207.0 L698.2,184.9 L673.0,164.8 L646.2,146.9 L618.0,131.4 L588.6,118.3 L558.1,107.8 L526.9,99.9 L495.1,94.7 L463.1,92.2 L430.9,92.5 L398.8,95.5 L367.1,101.2 L336.0,109.6 L305.8,120.6 L276.5,134.2 L248.6,150.1 L222.1,168.4 L197.2,188.9 L174.2,211.5 L153.2,235.9 L134.4,262.0 L163.8,252.5 L163.8,252.5 L123.6,234.5 L135.0,224.0" fill="none" stroke="#3b7dd8" stroke-width="2" stroke-dasharray="6 4" opacity="0.9"/>
+<path d="M287.3,428.2 L129.8,387.8" fill="none" stroke="#3b7dd8" stroke-width="9.6" stroke-opacity="0.25" stroke-linejoin="round"/>
+<path d="M294.0,442.5 L295.4,430.3 L287.3,428.2 L129.8,387.8 L129.8,387.8 L129.8,387.8 L129.8,314.0 L142.8,303.5 L142.8,294.5 L142.8,294.5 L123.6,234.5 L135.0,224.0" fill="none" stroke="#3b7dd8" stroke-width="2" stroke-dasharray="6 4" opacity="0.9"/>
+<rect x="129.0" y="218.0" width="12" height="12" fill="#555"/>
+<circle cx="228.0" cy="221.8" r="7.5" fill="#2e8b57"/>
+<path d="M435.6,320.7 L436.6,320.6 L437.5,320.5 L438.5,320.4 L439.4,320.4 L440.4,320.3 L441.4,320.2 L442.3,320.2 L443.3,320.2 L444.2,320.1 L445.2,320.1 L446.2,320.0 L447.1,320.0 L448.1,320.0 L449.0,320.0 L450.0,320.0 L451.0,320.0 L451.9,320.0 L452.9,320.0 L453.8,320.0 L454.8,320.1 L455.8,320.1 L456.7,320.2 L457.7,320.2 L458.6,320.2 L459.6,320.3 L460.6,320.4 L461.5,320.4 L462.5,320.5 L463.4,320.6 L464.4,320.7 L465.5,308.7 L464.5,308.6 L463.5,308.6 L462.4,308.5 L461.4,308.4 L460.4,308.3 L459.3,308.3 L458.3,308.2 L457.3,308.2 L456.2,308.1 L455.2,308.1 L454.1,308.1 L453.1,308.0 L452.1,308.0 L451.0,308.0 L450.0,308.0 L449.0,308.0 L447.9,308.0 L446.9,308.0 L445.9,308.1 L444.8,308.1 L443.8,308.1 L442.7,308.2 L441.7,308.2 L440.7,308.3 L439.6,308.3 L438.6,308.4 L437.6,308.5 L436.5,308.6 L435.5,308.6 L434.5,308.7Z" fill="#e08a1e" stroke="#9a5a0a"/>
+<path d="M300.5,458.2 L300.5,457.3 L300.6,456.3 L300.7,455.4 L300.8,454.4 L300.9,453.5 L301.0,452.5 L301.1,451.5 L301.3,450.6 L301.4,449.6 L301.5,448.7 L301.7,447.7 L301.8,446.8 L302.0,445.8 L302.1,444.9 L302.3,444.0 L302.4,443.0 L302.6,442.1 L302.8,441.1 L303.0,440.2 L303.2,439.2 L303.4,438.3 L303.6,437.4 L303.8,436.4 L304.0,435.5 L304.2,434.6 L304.5,433.6 L304.7,432.7 L305.0,431.8 L305.2,430.8 L305.5,429.9 L293.9,426.7 L293.6,427.7 L293.4,428.7 L293.1,429.7 L292.8,430.7 L292.6,431.7 L292.3,432.7 L292.1,433.7 L291.9,434.8 L291.7,435.8 L291.4,436.8 L291.2,437.8 L291.0,438.8 L290.8,439.8 L290.6,440.8 L290.5,441.9 L290.3,442.9 L290.1,443.9 L290.0,444.9 L289.8,446.0 L289.6,447.0 L289.5,448.0 L289.4,449.0 L289.2,450.1 L289.1,451.1 L289.0,452.1 L288.9,453.2 L288.8,454.2 L288.7,455.2 L288.6,456.3 L288.5,457.3Z" fill="#3b7dd8" stroke="#1d4f95"/>
+<path d="M594.5,429.9 L594.8,430.8 L595.0,431.8 L595.3,432.7 L595.5,433.6 L595.8,434.6 L596.0,435.5 L596.2,436.4 L596.4,437.4 L596.6,438.3 L596.8,439.2 L597.0,440.2 L597.2,441.1 L597.4,442.1 L597.6,443.0 L597.7,444.0 L597.9,444.9 L598.0,445.8 L598.2,446.8 L598.3,447.7 L598.5,448.7 L598.6,449.6 L598.7,450.6 L598.9,451.5 L599.0,452.5 L599.1,453.5 L599.2,454.4 L599.3,455.4 L599.4,456.3 L599.5,457.3 L599.5,458.2 L611.5,457.3 L611.4,456.3 L611.3,455.2 L611.2,454.2 L611.1,453.2 L611.0,452.1 L610.9,451.1 L610.8,450.1 L610.6,449.0 L610.5,448.0 L610.4,447.0 L610.2,446.0 L610.0,444.9 L609.9,443.9 L609.7,442.9 L609.5,441.9 L609.4,440.8 L609.2,439.8 L609.0,438.8 L608.8,437.8 L608.6,436.8 L608.3,435.8 L608.1,434.8 L607.9,433.7 L607.7,432.7 L607.4,431.7 L607.2,430.7 L606.9,429.7 L606.6,428.7 L606.4,427.7 L606.1,426.7Z" fill="#3b7dd8" stroke="#1d4f95"/>
+<path d="M270.7,474.7 L270.7,474.9 L270.7,475.1 L270.7,475.3 L270.7,475.5 L270.7,475.7 L270.7,475.9 L270.7,476.2 L270.7,476.4 L270.7,476.6 L270.7,476.8 L270.7,477.0 L270.7,477.2 L270.8,477.4 L270.8,477.6 L270.8,477.8 L270.8,478.0 L270.8,478.2 L270.8,478.5 L270.8,478.7 L270.8,478.9 L270.8,479.1 L270.8,479.3 L270.9,479.5 L270.9,479.7 L270.9,479.9 L270.9,480.1 L270.9,480.3 L270.9,480.5 L270.9,480.7 L270.9,481.0 L253.9,482.0 L253.9,481.8 L253.8,481.5 L253.8,481.3 L253.8,481.1 L253.8,480.9 L253.8,480.6 L253.8,480.4 L253.8,480.2 L253.8,479.9 L253.7,479.7 L253.7,479.5 L253.7,479.3 L253.7,479.0 L253.7,478.8 L253.7,478.6 L253.7,478.3 L253.7,478.1 L253.7,477.9 L253.6,477.7 L253.6,477.4 L253.6,477.2 L253.6,477.0 L253.6,476.7 L253.6,476.5 L253.6,476.3 L253.6,476.1 L253.6,475.8 L253.6,475.6 L253.6,475.4 L253.6,475.1Z" fill="#6b4ea0"/>
+<line x1="450.0" y1="314.0" x2="885.0" y2="300.0" stroke="#b56a0c" stroke-width="1"/>
+<text x="889.0" y="304.0" font-size="14" fill="#b56a0c" text-anchor="start" font-weight="700">Центр · в базе</text>
+<text x="889.0" y="321.0" font-size="12" fill="#555" text-anchor="start" font-weight="400">φ 0°, под клавиатурой, между коленями</text>
+<text x="889.0" y="338.0" font-size="12" fill="#555" text-anchor="start" font-weight="400">жгут 3 м: в камеру над Tech Bay (лист 51)</text>
+<line x1="603.6" y1="442.9" x2="885.0" y2="420.0" stroke="#3b7dd8" stroke-width="1"/>
+<text x="889.0" y="424.0" font-size="14" fill="#3b7dd8" text-anchor="start" font-weight="700">Справа · опция</text>
+<text x="889.0" y="441.0" font-size="12" fill="#555" text-anchor="start" font-weight="400">φ +80°, у правого бедра</text>
+<text x="889.0" y="458.0" font-size="12" fill="#555" text-anchor="start" font-weight="400">жгут 6 м: за ящики, через хаб в поясе, к шахте</text>
+<line x1="296.4" y1="442.9" x2="885.0" y2="530.0" stroke="#3b7dd8" stroke-width="1"/>
+<text x="889.0" y="534.0" font-size="14" fill="#3b7dd8" text-anchor="start" font-weight="700">Слева · опция</text>
+<text x="889.0" y="551.0" font-size="12" fill="#555" text-anchor="start" font-weight="400">φ −80°, у левого бедра</text>
+<text x="889.0" y="568.0" font-size="12" fill="#555" text-anchor="start" font-weight="400">жгут 2,5 м: через К7 в шахту</text>
+<line x1="262.4" y1="478.2" x2="885.0" y2="640.0" stroke="#6b4ea0" stroke-width="1"/>
+<text x="889.0" y="644.0" font-size="14" fill="#6b4ea0" text-anchor="start" font-weight="700">Откидной крючок · в базе</text>
+<text x="889.0" y="661.0" font-size="12" fill="#555" text-anchor="start" font-weight="400">φ −92°, наушники висят</text>
+<text x="889.0" y="678.0" font-size="12" fill="#555" text-anchor="start" font-weight="400">подключёнными</text>
+<line x1="646.7" y1="235.6" x2="885.0" y2="190.0" stroke="#6a6a6a" stroke-width="1"/>
+<text x="889.0" y="194.0" font-size="14" fill="#6a6a6a" text-anchor="start" font-weight="700">Жгуты — трубами внутри столешницы</text>
+<text x="889.0" y="211.0" font-size="12" fill="#555" text-anchor="start" font-weight="400">соты кольца, снизу ничего не видно</text>
+<text x="1175.0" y="110.0" font-size="15" fill="#222" text-anchor="start" font-weight="700">Как устроено</text>
+<text x="1175.0" y="129.0" font-size="13" fill="#555" text-anchor="start" font-weight="400">Панель пассивная: 3,5 мм, USB-C, USB-A.</text>
+<text x="1175.0" y="148.0" font-size="13" fill="#555" text-anchor="start" font-weight="400">Внутри только гнёзда и провод,</text>
+<text x="1175.0" y="167.0" font-size="13" fill="#555" text-anchor="start" font-weight="400">своей платы нет.</text>
+<text x="1175.0" y="205.0" font-size="15" fill="#222" text-anchor="start" font-weight="700">В Tech Bay — распределитель</text>
+<text x="1175.0" y="224.0" font-size="13" fill="#555" text-anchor="start" font-weight="400">Подключается к разъёмам передней</text>
+<text x="1175.0" y="243.0" font-size="13" fill="#555" text-anchor="start" font-weight="400">панели на плате ПК: звук HD Audio</text>
+<text x="1175.0" y="262.0" font-size="13" fill="#555" text-anchor="start" font-weight="400">и USB. Раздаёт их на три панели.</text>
+<text x="1175.0" y="300.0" font-size="15" fill="#222" text-anchor="start" font-weight="700">Почему центр в базе</text>
+<text x="1175.0" y="319.0" font-size="13" fill="#555" text-anchor="start" font-weight="400">Работает, пока вы лицом к экрану</text>
+<text x="1175.0" y="338.0" font-size="13" fill="#555" text-anchor="start" font-weight="400">и при повороте вправо. Одинаков</text>
+<text x="1175.0" y="357.0" font-size="13" fill="#555" text-anchor="start" font-weight="400">для левшей и правшей и для</text>
+<text x="1175.0" y="376.0" font-size="13" fill="#555" text-anchor="start" font-weight="400">кабеля из любой чашки.</text>
+<text x="1175.0" y="414.0" font-size="15" fill="#222" text-anchor="start" font-weight="700">Боковые панели</text>
+<text x="1175.0" y="433.0" font-size="13" fill="#555" text-anchor="start" font-weight="400">Для тех, кто работает у боковых</text>
+<text x="1175.0" y="452.0" font-size="13" fill="#555" text-anchor="start" font-weight="400">станций. Ставятся потом за один</text>
+<text x="1175.0" y="471.0" font-size="13" fill="#555" text-anchor="start" font-weight="400">визит: карман и труба уже есть.</text>
+<rect x="777.0" y="317.9" width="18" height="12" fill="#3b7dd8" stroke="#1d4f95"/>
+<line x1="795.0" y1="323.9" x2="885.0" y2="760.0" stroke="#3b7dd8" stroke-width="1"/>
+<text x="889.0" y="764.0" font-size="14" fill="#3b7dd8" text-anchor="start" font-weight="700">Хаб справа · с боковыми панелями</text>
+<text x="889.0" y="781.0" font-size="12" fill="#555" text-anchor="start" font-weight="400">в поясе над стояком ящиков: USB 2.0 — 5 м</text>
+<text x="889.0" y="798.0" font-size="12" fill="#555" text-anchor="start" font-weight="400">до устройства, от хаба до панели 1,1 м</text>
+<rect x="60" y="915" width="26" height="12" fill="#e08a1e"/>
+<text x="96.0" y="926.0" font-size="13" fill="#333" text-anchor="start" font-weight="400">панель в базе</text>
+<rect x="320" y="915" width="26" height="12" fill="#3b7dd8"/>
+<text x="356.0" y="926.0" font-size="13" fill="#333" text-anchor="start" font-weight="400">панели-опции</text>
+<rect x="580" y="915" width="26" height="12" fill="#6b4ea0"/>
+<text x="616.0" y="926.0" font-size="13" fill="#333" text-anchor="start" font-weight="400">откидной крючок</text>
+<rect x="840" y="915" width="26" height="12" fill="#6a6a6a"/>
+<text x="876.0" y="926.0" font-size="13" fill="#333" text-anchor="start" font-weight="400">жгут к распределителю (пунктир), труба в сотах — полоса</text>
+</svg>

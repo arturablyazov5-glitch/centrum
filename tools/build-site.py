@@ -16,9 +16,14 @@ LIGHT_OFF = RENDER_DIR / "led-wall-angle-off.png"
 LIGHT_ON = RENDER_DIR / "led-wall-angle-on.png"
 BRIDGE_OFF = RENDER_DIR / "bridge-front-closed-1600.png"
 BRIDGE_ON = RENDER_DIR / "bridge-front-open-1600.png"
-STORAGE_RENDER = RENDER_DIR / "drawers-detail-1600.png"
+# Плитка ящиков — пара «без / с подсветкой»; data-storage-image стоит на кадре «без».
+# Пока пара не отснята (render.sh --drawer-light-only), остаётся общий кадр ящиков.
+STORAGE_RENDER = next((path for path in (RENDER_DIR / "drawers-light-off-1600.png",
+                                         RENDER_DIR / "drawers-detail-1600.png") if path.exists()),
+                      RENDER_DIR / "drawers-light-off-1600.png")
 CONSTRUCTION_RENDER = RENDER_DIR / "camera-premium-01-three-quarter-1600.png"
 ERGONOMICS_RENDER = RENDER_DIR / "camera-premium-02-workspace-1600.png"
+MATERIAL_RENDER = RENDER_DIR / "camera-premium-03-material-detail-1600.png"
 
 
 def png_size(path: Path) -> tuple[int, int]:
@@ -42,33 +47,6 @@ def newest_hero() -> Path:
     )
     if not candidates:
         raise SystemExit(f"No hero renders found in {RENDER_DIR}")
-    return candidates[0]
-
-
-def newest_detail() -> Path:
-    preferred = sorted(
-        (
-            path
-            for path in RENDER_DIR.glob("camera-*-detail-*.png")
-            if "preview" not in path.stem
-        ),
-        key=lambda path: path.stat().st_mtime_ns,
-        reverse=True,
-    )
-    if preferred:
-        return preferred[0]
-
-    candidates = sorted(
-        (
-            path
-            for path in RENDER_DIR.glob("*detail*.png")
-            if "preview" not in path.stem and not path.name.startswith("led-")
-        ),
-        key=lambda path: path.stat().st_mtime_ns,
-        reverse=True,
-    )
-    if not candidates:
-        raise SystemExit(f"No detail renders found in {RENDER_DIR}")
     return candidates[0]
 
 
@@ -99,7 +77,7 @@ def update_index(
 
     updated = source[: hero_match.start()] + updated_tag + source[hero_match.end() :]
     detail_pattern = re.compile(
-        r'(<img\b(?=[^>]*\balt="Крупный план:)[^>]*\bsrc=")[^"]+'
+        r'(<img\b(?=[^>]*\bdata-material-image)[^>]*\bsrc=")[^"]+'
         r'("[^>]*>)',
         re.DOTALL,
     )
@@ -210,7 +188,9 @@ def main() -> None:
     args = parser.parse_args()
 
     hero = newest_hero()
-    detail = newest_detail()
+    detail = MATERIAL_RENDER
+    if not detail.exists():
+        raise SystemExit(f"Material render not found: {detail}")
     storage = STORAGE_RENDER
     if not storage.exists():
         raise SystemExit(f"Storage render not found: {storage}")

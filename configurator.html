@@ -23,8 +23,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
     <link rel="stylesheet" href="toggle.css">
-    <link rel="stylesheet" href="configurator.css">
+    <link rel="stylesheet" href="configurator.css?v=20260925-rail">
     <!-- Внутри лендинга конфигуратор — просто ещё один блок: без своего логотипа, рамок и фона. -->
     <script>if (window.self !== window.top || /[?&]embed\b/.test(location.search)) document.documentElement.classList.add('is-embed');</script>
   </head>
@@ -32,11 +33,9 @@
     <div class="configurator-shell">
       <header class="topbar">
         <a class="brand" href="index.html" aria-label="Вернуться к CENTRUM"><img src="assets/logo.svg" alt="CENTRUM" /></a>
-        <div class="topbar-center"><span>Конфигуратор</span><b data-progress></b></div>
         <div class="top-actions">
-          <button type="button" data-copy-link>Скопировать ссылку</button>
-          <button type="button" data-reset-view>Сбросить ракурс</button>
-          <button type="button" data-reset-all>Сбросить всё</button>
+          <button type="button" data-reset-view><i data-lucide="rotate-ccw" aria-hidden="true"></i><span>Сбросить ракурс</span></button>
+          <button type="button" data-reset-all><i data-lucide="refresh-cw" aria-hidden="true"></i><span>Сбросить всё</span></button>
         </div>
       </header>
 
@@ -44,7 +43,7 @@
         <nav class="category-nav" id="category-nav" aria-label="Категории конфигуратора"></nav>
         <section class="scene" aria-label="Интерактивная 3D-модель CENTRUM">
           <canvas id="centrum-canvas" tabindex="0" aria-label="3D-модель CENTRUM. Перетащите для поворота, используйте колесо для масштаба."></canvas>
-          <div class="scene-loader" id="scene-loader"><strong>CENTRUM</strong><span>Загрузка 3D…</span></div>
+          <div class="scene-loader" id="scene-loader"><img class="scene-loader-logo" src="assets/logo.svg" alt="CENTRUM" /><span>Загрузка конфигуратора…</span></div>
           <div class="hotspots" id="hotspots"></div>
           <label class="toggle-pill scene-led">
             <span>Подсветка</span>
@@ -82,6 +81,6 @@
       </div>
     </div>
     <div class="toast" id="toast" hidden></div>
-    <script type="module" src="js/configurator.js?v=20260923-2"></script>
+    <script type="module" src="js/configurator.js?v=20260928-drawer-lighting"></script>
   </body>
 </html>

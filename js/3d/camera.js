@@ -24,7 +24,7 @@ export function createCamera(target) {
 }
 
 // Ширина кадра зависит от пропорций холста, высота — нет. На узком экране
-// камера отходит, чтобы пятно 2900 × 2900 не срезалось по краям.
+// камера отходит, чтобы пятно стола 2700 × 2700 не срезалось по краям.
 const REFERENCE_ASPECT = 2;
 export function fitDistance(base, aspect) {
   if (!aspect || aspect >= REFERENCE_ASPECT) return base;
@@ -99,7 +99,7 @@ export function projectionMatrix(aspect, distance = 6000) {
 // Готовые ракурсы: те же, что и на листах чертежей.
 // Ракурсы заданы по чертежам и разворачиваются тем же отражением, что и модель.
 const SHEET_VIEWS = {
-  iso: { azimuth: -0.87, elevation: 0.5, distance: 6200 },
+  iso: { azimuth: 2.27, elevation: 0.5, distance: 6200 },
   front: { azimuth: -Math.PI / 2, elevation: 0.36, distance: 5600 },
   side: { azimuth: 0, elevation: 0.36, distance: 5600 },
   entry: { azimuth: Math.PI / 2.2, elevation: 0.32, distance: 5800 },

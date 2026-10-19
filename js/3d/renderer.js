@@ -3,8 +3,12 @@
 
 import { normalMatrix3, identity, lookAt, multiply, orthographic } from './mat4.js';
 import { computeBounds } from './bounds.js';
-import { CENTER, LEVEL_1, R_HOLE, R_BELT_HIGH } from './params.js';
-import { LED_Z, LED_END_Y } from './build-led.js';
+import { CENTER, LEVEL_1, R_HOLE, R_BELT_HIGH, R_LIP, TRANS_FAR, TRANS_LEN } from './params.js';
+import { LED_END_Y } from './build-led.js';
+import { LED_CEILING_GLSL } from './led-lighting.js';
+import { PALETTE } from './palette.js';
+import { SPEAKER_CHANNELS, SPEAKER_Z, speakerAngle } from './build-speakers.js';
+import { GRILLE_FIELD, HOLE_D, HOLE_PITCH } from './receiver-door.js';
 
 // GLSL требует у float-констант явную точку: 820 — синтаксическая ошибка, 820.0 — нет.
 const f = (n) => n.toFixed(1);
@@ -19,9 +23,12 @@ uniform mat4 uProjection, uView, uModel;
 uniform mat3 uNormalMatrix;
 uniform mat4 uShadowMatrix;
 varying vec3 vNormal, vColor, vWorld;
+varying vec3 vLocal, vLocalNormal;
 varying vec2 vUV;
 varying vec4 vShadowCoord;
 void main(){
+  vLocal = aPosition;
+  vLocalNormal = aNormal;
   vec4 world = uModel * vec4(aPosition, 1.0);
   vWorld = world.xyz;
   vNormal = uNormalMatrix * aNormal;
@@ -35,8 +42,16 @@ const FRAG = `
 #extension GL_OES_standard_derivatives : enable
 precision highp float;
 varying vec3 vNormal, vColor, vWorld;
+varying vec3 vLocal, vLocalNormal;
 varying vec2 vUV;
-uniform float uUnlit, uEmissive, uDirectTexture, uScreenPower, uLed, uFade, uTextured, uMono, uSurfaceTexture, uSideTexture;
+uniform vec3 uEmissiveColor;
+// Подсветка ящиков: точка света (xyz, яркость) и объём, куда свет достаёт.
+uniform vec4 uDrawerLight[9], uDrawerLightMin[9], uDrawerLightMax[9];
+uniform vec3 uDrawerLightColor;
+uniform float uUnlit, uEmissive, uDirectTexture, uScreenPower, uLed, uFade, uTextured, uMono, uSurfaceTexture, uSideTexture, uFlat;
+// Повтор и яркость карты группы: плитка кожи накладки мельче общей развёртки 2900 мм,
+// а её нейтрально-серая карта (среднее 0,5) не должна темнить цвет вершин.
+uniform float uTextureScale, uTextureGain;
 uniform vec3 uEye, uSurfaceTint, uLedColor;
 uniform sampler2D uTexture;
 uniform sampler2D uShadowMap;
@@ -51,12 +66,28 @@ const vec3 FILL = vec3(0.25, -0.38, 0.72);
 const vec3 RIM = vec3(0.68, 0.48, 0.56);
 const vec3 SKY = vec3(0.15, 0.17, 0.22);
 const vec3 GROUND = vec3(0.015, 0.012, 0.010);
-// Лента лежит в пазу выступа: кольцо радиусом R_BELT_HIGH−30 вокруг центра на отметке низа выступа.
+// Лента лежит в пазу выступа; на спуске меняются и радиус, и высота.
 const vec2 LED_CENTER = vec2(${f(CENTER)}, ${f(CENTER)});
-const float LED_RADIUS = ${f(R_BELT_HIGH - 30)};
-const float LED_Z = ${f(LED_Z)};
 const float SECTOR_Z = ${f(LEVEL_1)};
 const float HOLE_R = ${f(R_HOLE)};
+const vec3 GRILLE = vec3(${PALETTE.grille.map((v) => v.toFixed(4)).join(', ')});
+const vec3 RECEIVER_GRILLE = vec3(${PALETTE.receiverGrille.map((v) => v.toFixed(4)).join(', ')});
+// Металл фурнитуры: хром штока газлифта и оцинкованная сталь осей и планок.
+const vec3 CHROME = vec3(${PALETTE.gasRod.map((v) => v.toFixed(4)).join(', ')});
+const vec3 ZINC = vec3(${PALETTE.steel.map((v) => v.toFixed(4)).join(', ')});
+
+// Отражение студии в металле: тёмный пол, светлый потолок с софтбоксом
+// и блик ключевого света. Без него металл при одном направленном источнике
+// выглядит серой пластмассой — у хрома своего цвета почти нет.
+vec3 studioReflection(vec3 r, vec3 sunDir, float roughness){
+  float up = r.z;
+  vec3 env = mix(vec3(0.012), vec3(0.16, 0.165, 0.175), smoothstep(-0.25, 0.35, up));
+  float box = smoothstep(0.45, 0.62 + roughness * 0.3, up) * (1.0 - smoothstep(0.9, 0.99, up));
+  env += vec3(1.25, 1.2, 1.12) * box;
+  float sharp = mix(220.0, 18.0, roughness);
+  env += vec3(2.6, 2.3, 2.0) * pow(max(dot(r, sunDir), 0.0), sharp);
+  return env;
+}
 
 float unpackDepth(vec4 rgba){
   // UNORM8 хранит байты как n/255, а разряды упаковки имеют основание 256.
@@ -65,15 +96,19 @@ float unpackDepth(vec4 rgba){
     vec4(1.0 / 16777216.0, 1.0 / 65536.0, 1.0 / 256.0, 1.0));
 }
 
-// Ближайшая точка светящегося кольца и то, есть ли там вообще лента.
+${LED_CEILING_GLSL}
+
+// Источник следует сужению выступа и высоте нижней грани на спуске.
 vec4 nearestLed(vec3 p){
   vec2 d = p.xy - LED_CENTER;
   float len = max(length(d), 1.0);
-  vec2 ring = LED_CENTER + d / len * LED_RADIUS;
-  // Лента идёт только там, где выступ реально нависает: у входа линия разомкнута.
-  // Геометрия и свет заканчиваются на одной точной границе y=1600.
-  float live = step(ring.y, ${f(LED_END_Y)});
-  return vec4(ring, LED_Z, live);
+  vec2 wall = LED_CENTER + d / len * ${f(R_BELT_HIGH)};
+  float t = clamp((${f(TRANS_FAR)} - wall.y) / ${f(TRANS_LEN)}, 0.0, 1.0);
+  float overhang = ${f(R_BELT_HIGH - R_LIP)} * t * t * (3.0 - 2.0 * t);
+  vec2 ring = LED_CENTER + d / len * (${f(R_BELT_HIGH)} - overhang * 0.5);
+  float live = 1.0 - smoothstep(${f(LED_END_Y - 35)}, ${f(LED_END_Y)}, wall.y);
+  // Под нижней гранью; небольшой запас учитывает хорды сетки плиты.
+  return vec4(ring, ledCeilingAt(ring.y) - 2.0, live);
 }
 
 // Непериодический экранный шум для необязательного режима просвечивания.
@@ -146,6 +181,12 @@ vec3 pbrLight(vec3 baseColor, vec3 n, vec3 v, vec3 l, vec3 radiance,
   return (diffuse + specular) * radiance * noL * visibility;
 }
 
+// Ближайшее к нулю из двух угловых отклонений, второе приводится к −π…π.
+float nearestAngle(float best, float d){
+  d = mod(d + PI, 2.0 * PI) - PI;
+  return abs(d) < abs(best) ? d : best;
+}
+
 // Нейтральная компрессия бликов без агрессивного S-контраста и оранжевого
 // сдвига прежнего filmic-пресета.
 vec3 neutralTone(vec3 color){
@@ -173,7 +214,7 @@ void main(){
   // Собственный цвет: у корпуса он задан вершинами, у покупных моделей — картинкой
   // из GLB, помноженной на baseColorFactor материала. Картинки в sRGB, поэтому
   // раскодировать в линейное пространство нужно уже произведение.
-  vec3 sampled = texture2D(uTexture, vUV).rgb;
+  vec3 sampled = texture2D(uTexture, vUV * uTextureScale).rgb * uTextureGain;
   // uMono обесцвечивает картинку: так покупную модель можно перекрасить в нейтральный
   // тон, сохранив фактуру — плетение ткани, швы, потёртости остаются на месте.
   if (uMono > 0.5) sampled = vec3(dot(sampled, vec3(0.2126, 0.7152, 0.0722)));
@@ -185,21 +226,34 @@ void main(){
   float bridgeTop = 1.0 - step(0.025, distance(vColor, vec3(0.824, 0.808, 0.776)));
   float worktopBottom = 1.0 - step(0.025, distance(vColor, vec3(0.694, 0.663, 0.604)));
   float surfaceMask = uSurfaceTexture * max(max(worktop, worktopBottom), max(upper, bridgeTop));
+  // Торцы 60 мм и стенки выборок: плоская развёртка по x/y на вертикали
+  // вырождается в линию, и шпон тянулся поперёк кромки частыми полосами.
+  // Здесь шпон идёт вдоль кромки — проекцией по координатам самой детали,
+  // чтобы рисунок ехал вместе с поднятым мостом.
+  if (surfaceMask > 0.5) {
+    vec3 ln = normalize(vLocalNormal);
+    float edge = 1.0 - smoothstep(0.55, 0.8, abs(ln.z));
+    if (edge > 0.0) {
+      float bx = ln.x * ln.x, by = ln.y * ln.y;
+      vec3 along = (texture2D(uTexture, vLocal.yz / 2900.0).rgb * bx
+        + texture2D(uTexture, vLocal.xz / 2900.0).rgb * by) / max(bx + by, 1e-4);
+      sampled = mix(sampled, along * uTextureGain, edge);
+    }
+  }
   // Серый корпус — наружная стенка, нижняя внутренняя стенка и underside —
   // один материал. Для него отдельная проекция идёт по длине/высоте плоскости,
   // поэтому фактура не растягивается по мировому X/Y.
   float bodySide = 1.0 - step(0.025, distance(vColor, vec3(0.788, 0.773, 0.741)));
-  // Порог здесь намеренно узкий: innerWall почти того же серого цвета, но дерево
-  // получает только верхняя стенка между первым и вторым уровнями.
+  // Дерево получают рейки акустической ленты; сама стенка за ними — серая панель.
   float bodyBelt = 1.0 - step(0.002, distance(vColor, vec3(0.345, 0.341, 0.333)));
+  // Решётки 5.1 облицованы тем же шпоном: их цвет отличается от пояса на 1/255 только как метка.
+  float grilleMask = 1.0 - step(0.0015, distance(vColor, GRILLE));
+  bodyBelt = max(bodyBelt, grilleMask);
   float bodyUnderside = 1.0 - step(0.025, distance(vColor, vec3(0.667, 0.651, 0.624)));
   float bodyDrawer = 1.0 - step(0.025, distance(vColor, vec3(0.780, 0.761, 0.729)));
   // Цоколь — та же панель корпуса, только темнее: фактура та же, тон свой.
   float bodyPlinth = 1.0 - step(0.025, distance(vColor, vec3(0.490, 0.478, 0.459)));
-  // Нижняя внутренняя стенка — та же панель корпуса в своём тоне. От шпона
-  // верхней стенки её цвет отличается на 0,006, поэтому порог ещё уже.
-  float bodyInner = 1.0 - step(0.003, distance(vColor, vec3(0.341, 0.341, 0.337)));
-  float sideMask = uSideTexture * max(max(max(bodySide, bodyPlinth), bodyInner), max(bodyUnderside, bodyDrawer));
+  float sideMask = uSideTexture * max(max(bodySide, bodyPlinth), max(bodyUnderside, bodyDrawer));
   vec2 sideUV = abs(n.z) > max(abs(n.x), abs(n.y))
     ? vec2(vWorld.x / 220.0, vWorld.y / 220.0)
     : (abs(n.x) > abs(n.y)
@@ -213,12 +267,46 @@ void main(){
   vec3 materialSampled = mix(sampled, sideSampled, sideMask);
   float beltMask = uSurfaceTexture * bodyBelt;
   materialSampled = mix(materialSampled, beltSampled, beltMask);
-  // Верхняя стенка — шпон; нижняя внутренняя стенка имеет отдельный цветовой тег
-  // innerWall и получает фактуру панели корпуса (sideMask), а не шпон.
+  // Рейки — шпон; обе внутренние стенки — та же панель корпуса, что снаружи.
   float woodMask = max(surfaceMask, beltMask);
   float textureMix = max(uTextured * (1.0 - uSurfaceTexture), max(woodMask, sideMask));
   vec3 albedo = mix(vColor, vColor * materialSampled, textureMix);
   albedo *= mix(vec3(1.0), uSurfaceTint, woodMask);
+  // Перфорация решёток 5.1: Ø6 с шагом 10 мм в шахматном порядке. Сетка своя
+  // у каждой решётки — от её центра по развёртке стенки R1150, отверстие в центре.
+  // Отверстия только целые и только внутри R80: у кромки остаётся сплошной
+  // шпон, скос не прорезан. В отверстиях — чисто чёрная ткань. Когда отверстие
+  // мельче пикселя, рисунок переходит в средний тон — иначе шёл бы муар.
+  float grilleCover = 0.0;
+  if (grilleMask > 0.5) {
+    float theta = atan(vWorld.y - LED_CENTER.y, vWorld.x - LED_CENTER.x);
+    float dTheta = 10.0;
+${SPEAKER_CHANNELS.map((c) => `    dTheta = nearestAngle(dTheta, theta - ${speakerAngle(c.deg).toFixed(6)});`).join('\n')}
+    vec2 local = vec2(dTheta * ${f(R_BELT_HIGH)}, vWorld.z - ${f(SPEAKER_Z)});
+    vec2 wall = local / 10.0 + 0.5;
+    float shift = 0.5 * mod(floor(wall.y), 2.0);
+    wall.x += shift;
+    float cellPx = max(fwidth(wall.x), fwidth(wall.y));
+    vec2 offset = fract(wall) - 0.5;
+    float inField = step(length(local - offset * 10.0), 80.0);
+    float hole = inField * (1.0 - smoothstep(0.3 - cellPx, 0.3 + cellPx, length(offset)));
+    grilleCover = mix(0.28 * inField, hole, 1.0 - smoothstep(0.25, 0.6, cellPx));
+  }
+  // Дверца ресивера 5.1 на боку (receiver-door.js): тот же рисунок — Ø6 шаг 10 в
+  // шахматном порядке, прямоугольное поле со сплошным краем 20 мм, только на лице.
+  float receiverMask = 1.0 - step(0.0015, distance(vColor, RECEIVER_GRILLE));
+  if (receiverMask > 0.5 && abs(n.x) > 0.9) {
+    vec2 local = vec2(vWorld.y - ${f(GRILLE_FIELD.center[0])}, vWorld.z - ${f(GRILLE_FIELD.center[1])});
+    vec2 wall = local / ${f(HOLE_PITCH)} + 0.5;
+    wall.x += 0.5 * mod(floor(wall.y), 2.0);
+    float cellPx = max(fwidth(wall.x), fwidth(wall.y));
+    vec2 offset = fract(wall) - 0.5;
+    vec2 centre = abs(local - offset * ${f(HOLE_PITCH)});
+    float inField = step(centre.x, ${f(GRILLE_FIELD.half[0] - HOLE_D / 2)}) * step(centre.y, ${f(GRILLE_FIELD.half[1] - HOLE_D / 2)});
+    float r = ${f(HOLE_D / 2 / HOLE_PITCH)};
+    float hole = inField * (1.0 - smoothstep(r - cellPx, r + cellPx, length(offset)));
+    grilleCover = mix(0.28 * inField, hole, 1.0 - smoothstep(0.25, 0.6, cellPx));
+  }
   vec3 baseColor = pow(max(albedo, 0.0), vec3(2.2));
   // Двусторонняя геометрия нужна для осмотра изнутри; освещаем ту сторону,
   // которая обращена к камере, вместо прежнего одинакового света на всех гранях.
@@ -249,13 +337,25 @@ void main(){
 
   shaded += baseColor * mix(vec3(0.12), vec3(0.32, 0.34, 0.38), hemi);
 
+  float chrome = 1.0 - step(0.01, distance(vColor, CHROME));
+  float zinc = 1.0 - step(0.01, distance(vColor, ZINC));
+  float metal = max(chrome, zinc);
+  if (metal > 0.5) {
+    float metalRough = mix(0.32, 0.06, chrome);
+    vec3 tint = mix(vec3(0.62, 0.64, 0.66), vec3(0.92, 0.93, 0.95), chrome);
+    vec3 r = reflect(-viewDir, n);
+    float fres = pow(1.0 - max(dot(n, viewDir), 0.0), 5.0);
+    vec3 env = studioReflection(r, sunDir, metalRough) * mix(tint, vec3(1.0), fres);
+    shaded = env * mix(0.35, 1.0, shadow);
+  }
+
   // Заливка от ленты. Лента лежит в пазу и смотрит строго вниз, на рабочую
   // поверхность: всё, что выше неё или дальше пояса, света не получает.
   vec4 led = nearestLed(vWorld);
   vec3 fromLed = vWorld - led.xyz;
   float dist = max(length(fromLed), 1.0);
   float radius = length(vWorld.xy - LED_CENTER);
-  float below = step(vWorld.z, LED_Z - 4.0);
+  float below = step(vWorld.z, led.z - 4.0);
   float down = max(-fromLed.z / dist, 0.0);
   float inside = 1.0 - smoothstep(${f(R_BELT_HIGH)}, ${f(R_BELT_HIGH + 170)}, radius);
   // Стенки свет не пропускают: ниже рабочей поверхности он есть только в шахте
@@ -264,30 +364,54 @@ void main(){
   // Лента находится примерно в 400 мм от рабочей плоскости. Радиус затухания
   // выбран так, чтобы получалось читаемое тёплое пятно под реальной лентой,
   // но свет по-прежнему не заполнял весь корпус.
-  float falloff = 1.0 / (1.0 + pow(dist / 680.0, 2.0));
+  float falloff = 1.0 / (1.0 + pow(dist / 950.0, 2.0));
   float cone = uLed * led.w * below * inside * down * reachable;
-  // LED не огибает и не проходит сквозь переход: сам склон и всё за ним
-  // исключены из локальной засветки вместе с отсутствующим участком ленты.
-  cone *= (1.0 - smoothstep(${f(LED_END_Y - 180)}, ${f(LED_END_Y)}, vWorld.y)) * (1.0 - step(${f(R_BELT_HIGH + 1)}, radius));
+  // Луч обязан целиком пройти под плитой, включая гнутый переход.
+  cone *= ledPlateVisible(led.xyz, vWorld) * (1.0 - step(${f(R_BELT_HIGH + 1)}, radius));
   // Ограниченная декоративная подсветка только внутренней стенки корпуса.
-  // Без карты видимости LED нельзя корректно освещать предметы и склон.
-  // Прямо под лентой стенка облицована шпоном пояса (beltMask), а не панелью
-  // корпуса: без него засветка гасла ровно там, где лента и светит.
-  cone *= max(sideMask, beltMask) * (1.0 - step(0.1, abs(n.z))) * step(${f(R_BELT_HIGH - 60)}, radius);
+  // Предметы сохраняют отдельное студийное освещение.
+  // Прямо под лентой стоят рейки из шпона (beltMask): без него засветка гасла
+  // бы на рейках, ровно там, где лента и светит.
+  float wallLit = max(sideMask, beltMask) * (1.0 - step(0.1, abs(n.z))) * step(${f(R_BELT_HIGH - 60)}, radius);
+  // Сама рабочая плоскость под лентой: только горизонталь на отметке LEVEL_1,
+  // поэтому верх предметов на столе засветку по-прежнему не получает.
+  float deskLit = uSurfaceTexture * step(0.9, n.z) * (1.0 - step(6.0, abs(vWorld.z - SECTOR_Z)))
+    * smoothstep(${f(R_BELT_HIGH - 780)}, ${f(R_BELT_HIGH - 20)}, radius);
+  // Мягкий градиент без ступеньки: квадрат smoothstep гасит пятно к центру плавно.
+  deskLit *= deskLit;
+  cone *= max(wallLit, deskLit * 0.18);
   vec3 ledDir = -fromLed / dist;
   float ledNoL = max(dot(n, ledDir), 0.0);
   vec3 ledRadiance = uLedColor * cone * 7.5 * falloff;
   // Один и тот же источник даёт широкий тёплый wash и более узкий PBR-блик.
   // Поэтому его включение меняет не только пиксели самой линии, но и окружение.
-  shaded += baseColor * uLedColor * cone * falloff * ledNoL * 14.0;
+  shaded += baseColor * uLedColor * cone * falloff * ledNoL * 36.0;
+
+  // Подсветка открытого ящика: профиль под вырезом фасада светит в короб и нишу.
+  // Теней здесь нет, поэтому каждый источник ограничен объёмом своего ящика.
+  // Фактура панели корпуса без мип-карт рябит на расстоянии; под близким светом
+  // эта рябь становится муаром. Поэтому здесь панель берётся средним тоном карты.
+  vec3 drawerAlbedo = mix(baseColor, pow(vColor * 0.155, vec3(2.2)), sideMask);
+  for (int i = 0; i < 9; i++) {
+    vec4 drawerLight = uDrawerLight[i];
+    if (drawerLight.w <= 0.0) continue;
+    if (any(lessThan(vWorld, uDrawerLightMin[i].xyz)) || any(greaterThan(vWorld, uDrawerLightMax[i].xyz))) continue;
+    vec3 toLight = drawerLight.xyz - vWorld;
+    float d = max(length(toLight), 1.0);
+    float ndl = max(dot(n, toLight / d), 0.0);
+    shaded += drawerAlbedo * uDrawerLightColor * drawerLight.w * ndl * 22.0 / (1.0 + pow(d / 320.0, 2.0));
+  }
 
   vec3 rgb = shaded;
   rgb = neutralTone(rgb * 1.06);
   rgb = pow(max(rgb, 0.0), vec3(1.0 / 2.2));
+  // Отверстия решётки гасим уже после света: иначе блик и заполняющий свет
+  // делали чёрную ткань серой.
+  rgb *= 1.0 - grilleCover;
   // Светящийся рассеиватель выводится после тонемаппинга: иначе его максимум
   // сжимался до серо-бежевого и визуально не воспринимался источником света.
   // Это всё та же единственная геометрия LED, а не дополнительная полоса.
-  rgb = mix(rgb, clamp(uLedColor * 1.15, 0.0, 1.0), uEmissive);
+  rgb = mix(rgb, clamp(uEmissiveColor * 1.15, 0.0, 1.0), uEmissive);
   // Экранная текстура уже хранится в sRGB. Для проверенного emissive-материала
   // показываем её напрямую: без освещения, тонемаппинга и серой добавки, которая
   // раньше выбеливала обои и убивала исходную насыщенность.
@@ -295,6 +419,15 @@ void main(){
   // освещённый прямоугольник. Этим же параметром плавно возвращается картинка.
   vec3 poweredScreen = mix(vec3(0.008, 0.010, 0.014), clamp(sampled * vColor, 0.0, 1.0), uScreenPower);
   rgb = mix(rgb, poweredScreen, uDirectTexture);
+  // Пол — конечный квадрат. В Blender его край не виден, потому что свет
+  // софтбоксов затухает с расстоянием и пол к краю уходит в цвет фона. Здесь
+  // ключевой свет направленный, поэтому то же затухание задаём явно: световое
+  // пятно под столом, а к краю пол растворяется ровно в цвет очистки кадра.
+  float floorDist = length(vWorld.xy - LED_CENTER);
+  float floorFade = smoothstep(1450.0, 2850.0, floorDist);
+  rgb = mix(rgb, vec3(0.006, 0.005, 0.004), floorMask * floorFade * (2.0 - floorFade));
+  // Схемные слои (стрелки воздуха и кабелей) — чистый цвет без света и тени.
+  rgb = mix(rgb, vColor, uFlat);
   vec3 lineColor = mix(vec3(0.10), baseColor, 0.15);
   gl_FragColor = vec4(mix(rgb, lineColor, uUnlit * 0.48), 1.0);
 }`;
@@ -436,6 +569,11 @@ export function createRenderer(canvas) {
     normalMatrix: gl.getUniformLocation(program, 'uNormalMatrix'),
     unlit: gl.getUniformLocation(program, 'uUnlit'),
     emissive: gl.getUniformLocation(program, 'uEmissive'),
+    emissiveColor: gl.getUniformLocation(program, 'uEmissiveColor'),
+    drawerLight: gl.getUniformLocation(program, 'uDrawerLight'),
+    drawerLightMin: gl.getUniformLocation(program, 'uDrawerLightMin'),
+    drawerLightMax: gl.getUniformLocation(program, 'uDrawerLightMax'),
+    drawerLightColor: gl.getUniformLocation(program, 'uDrawerLightColor'),
     directTexture: gl.getUniformLocation(program, 'uDirectTexture'),
     screenPower: gl.getUniformLocation(program, 'uScreenPower'),
     led: gl.getUniformLocation(program, 'uLed'),
@@ -445,7 +583,10 @@ export function createRenderer(canvas) {
     ledColor: gl.getUniformLocation(program, 'uLedColor'),
     textured: gl.getUniformLocation(program, 'uTextured'),
     mono: gl.getUniformLocation(program, 'uMono'),
+    flat: gl.getUniformLocation(program, 'uFlat'),
     surfaceTexture: gl.getUniformLocation(program, 'uSurfaceTexture'),
+    textureScale: gl.getUniformLocation(program, 'uTextureScale'),
+    textureGain: gl.getUniformLocation(program, 'uTextureGain'),
     sideTexture: gl.getUniformLocation(program, 'uSideTexture'),
     shadowMatrix: gl.getUniformLocation(program, 'uShadowMatrix'),
     shadowMap: gl.getUniformLocation(program, 'uShadowMap'),
@@ -509,6 +650,7 @@ export function createRenderer(canvas) {
       return groups.map((g) => ({
         name: g.name,
         part: g.part || null,
+        packages: g.packages || null,
         // Исходные треугольники нужны для выбора детали курсором, коробка — чтобы
         // не перебирать их, когда луч заведомо мимо.
         source: g.mesh,
@@ -523,8 +665,13 @@ export function createRenderer(canvas) {
         noFade: !!g.noFade,
         depthPriority: !!g.depthPriority,
         mono: !!g.mono,
+        flat: !!g.flat,
+        overlay: !!g.overlay,
+        xray: !!g.xray,
         model: identity(),
         emissive: g.emissive || 0,
+        // Цвет свечения: по умолчанию — цвет основной LED, у подсветки ящиков свой.
+        emissiveColor: g.emissiveColor || null,
         directTexture: g.directTexture || 0,
         screenPower: g.screenPower ?? 1,
         castShadow: g.castShadow !== false,
@@ -536,7 +683,7 @@ export function createRenderer(canvas) {
       canvas.height = height;
       gl.viewport(0, 0, width, height);
     },
-    draw(groups, projection, view, { ledLevel = 0, ledColor = [1, 0.72, 0.46], eye = [0, 0, 0], fade = 0 } = {}) {
+    draw(groups, projection, view, { ledLevel = 0, ledColor = [1, 0.72, 0.46], eye = [0, 0, 0], fade = 0, drawerLights = [], drawerLightColor = [1, 0.74, 0.47] } = {}) {
       drawShadowMap(groups);
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       gl.viewport(0, 0, canvas.width, canvas.height);
@@ -555,21 +702,44 @@ export function createRenderer(canvas) {
       gl.uniform1f(loc.led, ledLevel);
       gl.uniform3fv(loc.ledColor, ledColor);
       gl.uniform3fv(loc.eye, eye);
+      // До девяти источников подсветки ящиков: неиспользуемые с нулевой яркостью.
+      const light = new Float32Array(36), lo = new Float32Array(36), hi = new Float32Array(36);
+      drawerLights.slice(0, 9).forEach((d, i) => {
+        light.set([...d.position, d.level], i * 4);
+        lo.set([...d.min, 0], i * 4);
+        hi.set([...d.max, 0], i * 4);
+      });
+      gl.uniform4fv(loc.drawerLight, light);
+      gl.uniform4fv(loc.drawerLightMin, lo);
+      gl.uniform4fv(loc.drawerLightMax, hi);
+      gl.uniform3fv(loc.drawerLightColor, drawerLightColor);
 
       // Грани слегка отодвигаются, чтобы контурные линии всегда были поверх них.
       gl.enable(gl.POLYGON_OFFSET_FILL);
-      for (const g of groups) {
+      // Схемные слои рисуются последними и поверх корпуса: стрелки идут внутри стенок.
+      const ordered = groups.some((g) => g.overlay) ? [...groups.filter((g) => !g.overlay), ...groups.filter((g) => g.overlay)] : groups;
+      // Рентген (xray) — тоже поверх корпуса, но со своей глубиной: детали схемы
+      // электрики перекрывают друг друга правильно. Буфер глубины очищается один
+      // раз, перед первым таким слоем, — корпус к этому времени уже нарисован.
+      let xrayDepth = false;
+      for (const g of ordered) {
         if (!g.visible || !g.mesh) continue;
+        if (g.xray && !xrayDepth) { gl.clear(gl.DEPTH_BUFFER_BIT); xrayDepth = true; }
+        if (g.overlay && !g.xray) gl.disable(gl.DEPTH_TEST);
         gl.uniformMatrix4fv(loc.model, false, g.model);
         gl.uniformMatrix3fv(loc.normalMatrix, false, normalMatrix3(g.model));
         gl.uniform1f(loc.unlit, 0);
         gl.uniform1f(loc.emissive, g.emissive);
+        gl.uniform3fv(loc.emissiveColor, g.emissiveColor || ledColor);
         gl.uniform1f(loc.directTexture, g.directTexture);
         gl.uniform1f(loc.screenPower, g.screenPower);
         gl.uniform1f(loc.fade, g.noFade ? 0 : fade);
         gl.uniform1f(loc.textured, g.texture ? 1 : 0);
         gl.uniform1f(loc.mono, g.mono ? 1 : 0);
+        gl.uniform1f(loc.flat, g.flat ? 1 : 0);
         gl.uniform1f(loc.surfaceTexture, g.surfaceTexture ? 1 : 0);
+        gl.uniform1f(loc.textureScale, g.textureScale || 1);
+        gl.uniform1f(loc.textureGain, g.textureGain || 1);
         gl.uniform3fv(loc.surfaceTint, g.surfaceTint || [1, 1, 1]);
         gl.uniform1f(loc.sideTexture, g.sideTexture ? 1 : 0);
         // Экранные полигоны подтягиваем к камере только на этапе теста глубины.
@@ -585,16 +755,19 @@ export function createRenderer(canvas) {
         gl.uniform1i(loc.sideSampler, 2);
         bind(g.mesh);
         gl.drawArrays(gl.TRIANGLES, 0, g.mesh.count);
+        if (g.overlay && !g.xray) gl.enable(gl.DEPTH_TEST);
       }
       gl.disable(gl.POLYGON_OFFSET_FILL);
 
       // В фоторежиме геометрию читают свет, блики и реальные зазоры. Отдельный
       // чертёжный контур поверх граней намеренно не рисуем.
     },
-    setTexture(group, image, { surfaceOnly = false } = {}) {
+    setTexture(group, image, { surfaceOnly = false, scale = 1, gain = 1 } = {}) {
       if (!group || !image) return;
       group.texture = uploadTexture(gl, image);
       group.surfaceTexture = surfaceOnly;
+      group.textureScale = scale;
+      group.textureGain = gain;
     },
     setSideTexture(group, image) {
       if (!group || !image) return;

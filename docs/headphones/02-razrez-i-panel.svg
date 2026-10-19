@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1480 1220" width="1480" height="1220" font-family="Helvetica, Arial, sans-serif">
+<rect width="1480" height="1220" fill="#fff"/>
+<text x="40" y="38" font-size="24" font-weight="700" fill="#222">Панель для наушников · разрез и лицевая сторона · карман</text>
+<text x="40" y="60" font-size="14" fill="#666">Разрез по левой панели (φ −80°); центральная и правая устроены так же. Справа — кромка крупно, внизу — панель.</text>
+<line x1="40.0" y1="690.0" x2="691.0" y2="690.0" stroke="#888"/>
+<rect x="355.0" y="345.6" width="315.0" height="25.2" fill="#c9a27a" stroke="#7a5a3a"/>
+<rect x="586.0" y="370.8" width="6.72" height="270.48" fill="#ddd" stroke="#999"/>
+<rect x="628.0" y="156.60000000000002" width="42.0" height="189.0" fill="#e7e2da" stroke="#999"/>
+<rect x="602.8" y="156.60000000000002" width="67.2" height="25.2" fill="#c9a27a" stroke="#7a5a3a"/>
+<text x="649.0" y="257.4" font-size="12" fill="#777" text-anchor="middle" font-weight="400">пояс</text>
+<text x="489.4" y="522.0" font-size="12" fill="#999" text-anchor="middle" font-weight="400">ниша для ног</text>
+<line x1="363.4" y1="354.84000000000003" x2="363.4" y2="370.8" stroke="#e08a1e" stroke-width="4"/>
+<rect x="48.4" y="492.6" width="193.2" height="16.8" rx="6" fill="#cfcfcf"/>
+<rect x="136.6" y="509.4" width="16.8" height="134.4" fill="#cfcfcf"/>
+<path d="M77.8,475.8 L77.8,236.40000000000003 Q77.8,194.40000000000003 119.8,194.40000000000003 L170.2,194.40000000000003 Q216.4,194.40000000000003 216.4,236.40000000000003 L216.4,475.8 Z" fill="#e4e4e4" stroke="#aaa"/>
+<ellipse cx="145.0" cy="148.20000000000005" rx="35.699999999999996" ry="50.4" fill="#e4e4e4" stroke="#aaa"/>
+<path d="M208.0,219.60000000000002 Q283.6,286.8 342.4,379.2" stroke="#bbb" stroke-width="29.4" fill="none" stroke-linecap="round" opacity="0.6"/>
+<circle cx="178.6" cy="144.0" r="5" fill="#c0392b"/>
+<text x="188.6" y="134.0" font-size="12" fill="#c0392b" text-anchor="start" font-weight="400">левое ухо ≈ +1300*</text>
+<path d="M178.6,144.0 C182.79999999999998,228.0 321.4,379.2 359.2,366.6" stroke="#2e7d4f" stroke-width="2.5" fill="none"/>
+<text x="321.4" y="207.0" font-size="15" fill="#2e7d4f" text-anchor="start" font-weight="700">≈ 0,7 м до уха</text>
+<text x="321.4" y="224.0" font-size="12" fill="#2e7d4f" text-anchor="start" font-weight="400">от любой из трёх панелей</text>
+<text x="321.4" y="241.0" font-size="12" fill="#888" text-anchor="start" font-weight="400">рука сама опускается к кромке</text>
+<path d="M420.09999999999997,370.8 L420.09999999999997,396.84000000000003 L396.15999999999997,396.84000000000003 L396.15999999999997,392.64" stroke="#6b4ea0" stroke-width="3" fill="none"/>
+<path d="M380.2,484.20000000000005 L380.2,421.2 Q380.2,396.0 407.91999999999996,396.0 Q435.64,396.0 435.64,421.2 L435.64,484.20000000000005" stroke="#555" stroke-width="3" fill="none"/>
+<rect x="371.8" y="425.40000000000003" width="72.24" height="63.0" rx="10" fill="#555" opacity="0.35"/>
+<text x="449.5" y="429.6" font-size="12" fill="#6b4ea0" text-anchor="start" font-weight="400">наушники на крючке</text>
+<text x="449.5" y="444.6" font-size="12" fill="#6b4ea0" text-anchor="start" font-weight="400">низ ≈ +480</text>
+<line x1="670.0" y1="345.6" x2="682.6" y2="345.6" stroke="#999"/>
+<text x="684.7" y="349.6" font-size="12" fill="#777" text-anchor="start" font-weight="400">+820</text>
+<line x1="670.0" y1="370.8" x2="682.6" y2="370.8" stroke="#999"/>
+<text x="684.7" y="374.8" font-size="12" fill="#777" text-anchor="start" font-weight="400">+760</text>
+<line x1="670.0" y1="156.60000000000002" x2="682.6" y2="156.60000000000002" stroke="#999"/>
+<text x="684.7" y="160.6" font-size="12" fill="#777" text-anchor="start" font-weight="400">+1270</text>
+<text x="145.0" y="710.0" font-size="12" fill="#777" text-anchor="middle" font-weight="400">центр кресла</text>
+<text x="355.0" y="710.0" font-size="12" fill="#777" text-anchor="middle" font-weight="400">R500 кромка</text>
+<text x="586.0" y="710.0" font-size="12" fill="#777" text-anchor="middle" font-weight="400">R1050</text>
+<rect x="810" y="110" width="590.0" height="500.0" fill="#fbfaf8" stroke="#ddd"/>
+<text x="820.0" y="102.0" font-size="15" fill="#222" text-anchor="start" font-weight="700">Кромка крупно, 3 : 1</text>
+<polygon points="910.0,204.0 916.0,193.5 934.0,180.0 1390.0,180.0 1390.0,360.0 988.0,360.0 988.0,246.0 910.0,246.0" fill="#c9a27a" stroke="#7a5a3a"/>
+<polygon points="988.0,264.0 988.0,342.0 1090.0,342.0 1090.0,264.0" fill="#3a3a3c"/>
+<rect x="970.0" y="246.0" width="18.0" height="114.0" fill="#e08a1e"/>
+<text x="1210.0" y="306.0" font-size="12" fill="#555" text-anchor="middle" font-weight="400">корпуса гнёзд</text>
+<line x1="991.0" y1="303.0" x2="862.0" y2="303.0" stroke="#999" stroke-width="21.0" stroke-linecap="round" opacity="0.8"/>
+<line x1="991.0" y1="303.0" x2="820.0" y2="303.0" stroke="#c0392b" stroke-dasharray="6 4"/>
+<text x="826.0" y="405.0" font-size="12" fill="#c0392b" text-anchor="start" font-weight="400">ось штекера горизонтальна, смотрит на человека.</text>
+<text x="826.0" y="420.0" font-size="12" fill="#c0392b" text-anchor="start" font-weight="400">Гнёзда заподлицо, металлические, на винтах к панели,</text>
+<text x="826.0" y="435.0" font-size="12" fill="#c0392b" text-anchor="start" font-weight="400">а не впаяны в плату</text>
+<line x1="910.0" y1="380.0" x2="970.0" y2="380.0" stroke="#333"/>
+<text x="940.0" y="396.0" font-size="13" fill="#222" text-anchor="middle" font-weight="400">20</text>
+<line x1="832.0" y1="246.0" x2="832.0" y2="360.0" stroke="#333"/>
+<text x="818.0" y="307.0" font-size="13" fill="#222" text-anchor="middle" font-weight="400">38</text>
+<line x1="946.0" y1="180.0" x2="946.0" y2="246.0" stroke="#333"/>
+<text x="932.0" y="217.0" font-size="13" fill="#222" text-anchor="middle" font-weight="400">22</text>
+<line x1="820.0" y1="180.0" x2="844.0" y2="180.0" stroke="#999"/>
+<text x="816.0" y="184.0" font-size="12" fill="#777" text-anchor="end" font-weight="400">+820</text>
+<line x1="820.0" y1="246.0" x2="844.0" y2="246.0" stroke="#999"/>
+<text x="816.0" y="250.0" font-size="12" fill="#777" text-anchor="end" font-weight="400">+798</text>
+<line x1="820.0" y1="360.0" x2="844.0" y2="360.0" stroke="#999"/>
+<text x="816.0" y="364.0" font-size="12" fill="#777" text-anchor="end" font-weight="400">+760</text>
+<text x="940.0" y="150.0" font-size="12" fill="#555" text-anchor="start" font-weight="400">R8 под предплечья не тронута, верх стола цельный</text>
+<text x="1090.0" y="540.0" font-size="12" fill="#555" text-anchor="start" font-weight="400">карман 20 × 38, устье R6 в кромку стола, низ панели R4</text>
+<text x="80.0" y="780.0" font-size="15" fill="#222" text-anchor="start" font-weight="700">Лицевая панель, 4 : 1 · 100 × 38, гнёзда заподлицо</text>
+<rect x="80" y="800" width="400.0" height="152.0" rx="8" fill="#3a3a3c"/>
+<rect x="153.0" y="865.6" width="46.0" height="20.8" rx="10.4" fill="#bbb"/><rect x="158.8" y="870.4" width="34.4" height="11.2" rx="5.6" fill="#000"/>
+<rect x="166.0" y="816.0" width="20.0" height="3" fill="#ccc"/>
+<circle cx="280.0" cy="876.0" r="19.0" fill="#bbb"/><circle cx="280.0" cy="876.0" r="7.4" fill="#000"/>
+<rect x="270.0" y="816.0" width="20.0" height="3" fill="#ccc"/>
+<rect x="353.0" y="860.8" width="62.0" height="30.4" rx="6" fill="#bbb"/><rect x="359.2" y="866.8" width="49.6" height="18.4" rx="4" fill="#000"/>
+<rect x="374.0" y="816.0" width="20.0" height="3" fill="#ccc"/>
+<line x1="176.0" y1="952.0" x2="176.0" y2="976.0" stroke="#999"/>
+<text x="176.0" y="992.0" font-size="14" fill="#222" text-anchor="middle" font-weight="700">USB-C</text>
+<text x="176.0" y="1008.0" font-size="12" fill="#555" text-anchor="middle" font-weight="400">наушники и гарнитуры USB-C,</text>
+<text x="176.0" y="1024.0" font-size="12" fill="#555" text-anchor="middle" font-weight="400">переходники USB-C → 3,5</text>
+<line x1="280.0" y1="952.0" x2="280.0" y2="1060.0" stroke="#999"/>
+<text x="280.0" y="1076.0" font-size="14" fill="#222" text-anchor="middle" font-weight="700">3,5 мм, 4 контакта</text>
+<text x="280.0" y="1092.0" font-size="12" fill="#555" text-anchor="middle" font-weight="400">в середине — находится первым</text>
+<text x="280.0" y="1108.0" font-size="12" fill="#555" text-anchor="middle" font-weight="400">наушники и гарнитуры</text>
+<text x="280.0" y="1124.0" font-size="12" fill="#555" text-anchor="middle" font-weight="400">с микрофоном (CTIA)</text>
+<line x1="384.0" y1="952.0" x2="384.0" y2="976.0" stroke="#999"/>
+<text x="384.0" y="992.0" font-size="14" fill="#222" text-anchor="middle" font-weight="700">USB-A</text>
+<text x="384.0" y="1008.0" font-size="12" fill="#555" text-anchor="middle" font-weight="400">приёмник беспроводной</text>
+<text x="384.0" y="1024.0" font-size="12" fill="#555" text-anchor="middle" font-weight="400">гарнитуры или мыши —</text>
+<text x="384.0" y="1040.0" font-size="12" fill="#555" text-anchor="middle" font-weight="400">у головы, а не в шкафу</text>
+<text x="530.0" y="800.0" font-size="15" fill="#222" text-anchor="start" font-weight="700">Что подключается</text>
+<text x="530.0" y="820.0" font-size="13" fill="#555" text-anchor="start" font-weight="400">3,5 мм — почти все проводные наушники и гарнитуры.</text>
+<text x="530.0" y="840.0" font-size="13" fill="#555" text-anchor="start" font-weight="400">USB-C — наушники и гарнитуры с Type-C, в том числе</text>
+<text x="530.0" y="860.0" font-size="13" fill="#555" text-anchor="start" font-weight="400">новые без джека, и переходники «USB-C → 3,5».</text>
+<text x="530.0" y="880.0" font-size="13" fill="#555" text-anchor="start" font-weight="400">USB-A — USB-гарнитуры со старым штекером и приёмники</text>
+<text x="530.0" y="900.0" font-size="13" fill="#555" text-anchor="start" font-weight="400">беспроводных гарнитур: радио рядом с головой, а не</text>
+<text x="530.0" y="920.0" font-size="13" fill="#555" text-anchor="start" font-weight="400">за стенкой шкафа Tech Bay.</text>
+<text x="530.0" y="960.0" font-size="15" fill="#222" text-anchor="start" font-weight="700">Как находится вслепую</text>
+<text x="530.0" y="980.0" font-size="13" fill="#555" text-anchor="start" font-weight="400">Рука опускается к кромке — пальцы заходят в карман.</text>
+<text x="530.0" y="1000.0" font-size="13" fill="#555" text-anchor="start" font-weight="400">3,5 мм в середине, USB по бокам.</text>
+<text x="530.0" y="1020.0" font-size="13" fill="#555" text-anchor="start" font-weight="400">Риски над гнёздами читаются пальцем. В кармане — тусклая</text>
+<text x="530.0" y="1040.0" font-size="13" fill="#555" text-anchor="start" font-weight="400">подсветка от USB, горит, пока включён ПК.</text>
+<text x="530.0" y="1080.0" font-size="15" fill="#222" text-anchor="start" font-weight="700">Чего нет и почему</text>
+<text x="530.0" y="1100.0" font-size="13" fill="#555" text-anchor="start" font-weight="400">6,35 и 4,4 мм — у редких студийных наушников, в комплекте</text>
+<text x="530.0" y="1120.0" font-size="13" fill="#555" text-anchor="start" font-weight="400">с ними почти всегда переходник на 3,5.</text>
+</svg>

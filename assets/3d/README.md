@@ -27,6 +27,10 @@
 - Источник: https://sketchfab.com/3d-models/power-socket-3b9224822c9d4205b7102ffba1c176e1
 - Лицензия: CC BY 4.0 — https://creativecommons.org/licenses/by/4.0/
 - Локальный файл: `power_socket.glb` (в сцене используется только правая рамка — розетка)
+- `usb_module.glb` — пустая левая рамка того же файла с добавленными гнёздами
+  2 × USB-A (Quick Charge, оранжевые), 2 × USB-C и сенсорной кнопкой подсветки (модуль USB в блоке розеток)
+- `usb_c_module.glb` — тот же модуль USB без ряда USB-A: 2 × USB-C и кнопка
+  (рамка C в пакетах ADVANCED и MAX, лист 43)
 
 ## Headphone with stand
 

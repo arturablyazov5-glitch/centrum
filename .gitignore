@@ -8,9 +8,12 @@ centrum-3d.css
 centrum.js
 assets/svg/
 
-# Проектные заметки, не часть сайта
+# Проектные заметки и настройки агентов, не часть сайта
 SOURCE-OF-TRUTH.md*
 acoustics-notes.md*
+AGENTS.md
+CLAUDE.md
+.claude/
 
 # Рендер-архив, инструменты сборки, презентации
 output/*
@@ -31,9 +34,6 @@ tools/
 !tools/
 tools/*
 !tools/build-site.py
-!tools/build-geometry.py
-.codex-build/
-.codex-finalizer/
 
 # Бэкапы и мусор параллельной работы
 .backup-*/

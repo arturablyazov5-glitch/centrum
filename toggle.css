@@ -51,10 +51,10 @@
   gap: 14px;
   padding: 8px 8px 8px 16px;
   border-radius: 999px;
-  background: rgba(10, 10, 12, 0.66);
+  background: #fff;
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
-  color: #dedbd4;
+  color: #000;
   font-size: 13px;
   cursor: pointer;
   user-select: none;
